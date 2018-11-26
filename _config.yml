@@ -23,3 +23,5 @@ record: "@ERVING"
 
 coderay:
   coderay_tab_width: 4
+
+theme: jekyll-theme-cayman
