@@ -1,0 +1,539 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+		<meta http-equiv="content-language" content="zh-CN" />
+		<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+		<meta name="keywords" content="TMaize,java"/>
+		<meta name="author" content="TMaize" />
+		<meta name="description" content="SSH框架搭建"/>
+		<link rel="icon" href="/static/img/favicon.ico" type="image/x-icon" />
+		<link rel="shortcut icon" href="/static/img/favicon.ico" type="image/x-icon"/>
+		<link rel="stylesheet" href="/static/css/blog.css">
+		<link rel="stylesheet" href="/static/css/blog-post.css">
+		<script>window.blog={contextPath:""}</script>
+		<script type="text/javascript" src="/static/js/blog.js"></script>
+		<title>SSH框架搭建-TMaize Blog</title>
+	</head>
+<body>
+<header class="header select-none">
+    <a class="logo" title="TMaize Blog" href="/">
+        <img src="/static/img/logo.jpg">
+    </a>
+    <a class="title" href="/">TMaize Blog</a>
+    <nav class="menu">
+        <a href="/">Blog</a>
+        <a href="/pages/categories.html">Categories</a>
+        <a href="/pages/search.html">Search</a>
+        <a href="/pages/links.html">Links</a>
+        <a href="/pages/chat.html">Chat</a>
+        <a href="/pages/about.html">About</a>
+    </nav>
+    <span class="icon"></span>
+</header>
+	<div class="main animation-fadeUp post">
+		
+		<h1 class="title">SSH框架搭建</h1>
+		
+		<div class="content"><h2 id="section">思路</h2>
+
+<p>具体项目中一般是web调用services，services调用dao</p>
+
+<p>在web层采用struts2，在services层采用Spring，在DAO层采用hibernate</p>
+
+<p>因此整合分为两个步骤</p>
+
+<ol>
+  <li>
+    <p>Spring和struts2整合</p>
+
+    <p>把Action创建交给SpringIOC 并且不能是单例模式</p>
+  </li>
+</ol>
+
+<ul>
+  <li>
+    <p>Spring和Hibernate整合</p>
+
+    <p>spring配置数据源</p>
+
+    <p>spring生成sessionFactory，把数据源注入到sessionFactory，同时指定hibernate核心配置文件位置</p>
+  </li>
+</ul>
+
+<h2 id="springstruts2">Spring和struts2整合</h2>
+
+<h3 id="jar">导入相关jar包</h3>
+
+<p><img src="01.jpg" alt="01" /></p>
+
+<h3 id="spring">配置Spring随启动加载</h3>
+
+<ul>
+  <li>创建spring.xml</li>
+</ul>
+
+<p>```xml
+<?xml version="1.0" encoding="UTF-8"?></p>
+<beans xmlns="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:aop="http://www.springframework.org/schema/aop" xmlns:tx="http://www.springframework.org/schema/tx" xmlns:context="http://www.springframework.org/schema/context" xmlns:mvc="http://www.springframework.org/schema/mvc" xmlns:task="http://www.springframework.org/schema/task" xsi:schemalocation="
+        http://www.springframework.org/schema/beans
+        http://www.springframework.org/schema/beans/spring-beans.xsd
+        http://www.springframework.org/schema/tx
+        http://www.springframework.org/schema/tx/spring-tx.xsd
+        http://www.springframework.org/schema/aop
+        http://www.springframework.org/schema/aop/spring-aop.xsd
+        http://www.springframework.org/schema/context
+        http://www.springframework.org/schema/context/spring-context.xsd
+        http://www.springframework.org/schema/mvc
+        http://www.springframework.org/schema/mvc/spring-mvc.xsd
+        http://www.springframework.org/schema/task
+        http://www.springframework.org/schema/task/spring-task.xsd">
+        
+</beans>
+<p>```</p>
+
+<ul>
+  <li>在web.xml配置启动时加载配置</li>
+</ul>
+
+<p>```xml</p>
+<context-param>
+	<param-name>contextConfigLocation</param-name>
+	<param-value>classpath:spring.xml</param-value>
+</context-param>
+
+<listener>
+	<listener-class>org.springframework.web.context.ContextLoaderListener</listener-class>
+</listener>
+<p>```</p>
+
+<h3 id="struts">搭建Struts环境</h3>
+
+<ul>
+  <li>
+    <p>创建Action测试类</p>
+  </li>
+  <li>
+    <p>创建struts配置文件</p>
+  </li>
+  <li>
+    <p>在web.xml设置struts过滤器</p>
+  </li>
+</ul>
+
+<p>```xml</p>
+<filter>
+    <filter-name>struts2</filter-name>
+    <filter-class>org.apache.struts2.dispatcher.filter.StrutsPrepareAndExecuteFilter</filter-class>
+</filter>
+
+<filter-mapping>
+    <filter-name>struts2</filter-name>
+    <url-pattern>/*</url-pattern>
+</filter-mapping>
+<p>```</p>
+
+<h3 id="section-1">整合</h3>
+
+<ul>
+  <li>用IOC的方式生成Action</li>
+</ul>
+
+<p>```xml
+<!-- 用Spring生成action对象，注意不要是默认的单例 --></p>
+<bean id="userAction" class="action.UserAction" scope="prototype"></bean>
+<p>```</p>
+
+<ul>
+  <li>在struts中使用生成的Action对象</li>
+</ul>
+
+<p>```xml</p>
+<package name="demo" extends="struts-default" namespace="/">
+    <!-- 注意在class能不能写类路径，这样会创建两次，应为spring已经创建好了，写在Spring中创建的对象id名 -->
+    <!-- 在struts2-spring-plugin中提供了这个功能 -->
+    <action name="userAction" class="userAction"></action>
+</package>
+<p>```</p>
+
+<h2 id="springhibernate">Spring和Hibernate整合</h2>
+
+<h3 id="jar-1">导入相关jar包</h3>
+
+<p>除了hibernate的基本jar包外，还需要数据库连接池（非必须）及spring-orm.jar的配合</p>
+
+<p><img src="02.jpg" alt="02" /></p>
+
+<h3 id="spring-1">在Spring配置中配置连接池</h3>
+
+<p>```xml</p>
+<bean id="dataSource" class="com.mchange.v2.c3p0.ComboPooledDataSource" destroy-method="close">
+    <property name="driverClass" value="com.mysql.jdbc.Driver" />
+    <property name="jdbcUrl" value="jdbc:mysql://127.0.0.1:3306/tian?characterEncoding=utf-8" />
+    <property name="user" value="root" />
+    <property name="password" value="********" />
+</bean>
+<p>```</p>
+
+<h3 id="sessionfactory">生成sessionFactory对象</h3>
+
+<ol>
+  <li>
+    <p>服务器启动时加载spring配置文件(之间做好了)，再在Spring中配置加载hibernate配置</p>
+  </li>
+  <li>
+    <p>在spring配置文件中生成sessionFactory对象（单例）</p>
+  </li>
+</ol>
+
+<p>由于sessionFactory并不是直接new出来的而是多行代码实现的，所以不能直接用ioc创建</p>
+
+<p><code class="highlighter-rouge">java
+configuration = new Configuration().configure();
+sessionFactory = configuration.buildSessionFactory();
+</code></p>
+
+<p>好在Spring提供了一个对象来生成sessionFactory。当引用这个LocalSessionFactoryBean 的时候，比如<code class="highlighter-rouge">applicationContext.getBean("localSessionFactoryBean")</code>这样，spring返回的不是LocalSessionFactoryBean 本身，他会自动调用getObject()这个方法，把真正的session factory返回。所以只需要做如下配置</p>
+
+<p>```xml</p>
+<bean id="sessionFactory" class="org.springframework.orm.hibernate4.LocalSessionFactoryBean">
+    <!-- 注入数据源 -->
+    <property name="dataSource" ref="dataSource"></property>
+    <!-- 指定hibernate核心配置文件 -->
+    <property name="configLocations" value="classpath:hibernate.cfg.xml"></property>
+</bean>
+<p>```</p>
+
+<h3 id="hibernate">配置hibernate</h3>
+
+<ol>
+  <li>
+    <p>建立实体类</p>
+
+    <p>```java
+ public class User {</p>
+
+    <div class="highlighter-rouge"><pre class="highlight"><code> private int id;
+ private String name;
+ private String birthday;
+ private int score;
+ //getter/setter方法  }  ```
+</code></pre>
+    </div>
+  </li>
+  <li>
+    <p>为实体类建立hibernate配置文件</p>
+
+    <p>```xml
+ <?xml version="1.0" encoding="UTF-8"?>
+ &lt;!DOCTYPE hibernate-mapping PUBLIC 
+     “-//Hibernate/Hibernate Mapping DTD 3.0//EN”
+     “http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd”&gt;</p>
+
+    <hibernate-mapping>
+     <!-- 配置类和表对应 -->
+     <class name="entity.User" table="user">
+         <!-- 配置主键 -->
+         <id name="id" column="id">
+             <!-- 设置数据库表主键增长策略 -->
+             <generator class="native"></generator>
+         </id>
+         <!-- 配置其他属性和表字段对应 -->
+         <property name="name" column="name"></property>
+         <property name="birthday" column="birthday"></property>
+         <property name="score" column="score"></property>
+     </class>
+ </hibernate-mapping>
+    <p>```</p>
+  </li>
+  <li>
+    <p>创建hibernate核心配置文件</p>
+
+    <p>```
+ <?xml version="1.0" encoding="UTF-8"?>
+ &lt;!DOCTYPE hibernate-configuration PUBLIC
+     “-//Hibernate/Hibernate Configuration DTD 3.0//EN”
+     “http://www.hibernate.org/dtd/hibernate-configuration-3.0.dtd”&gt;</p>
+    <hibernate-configuration>
+     <session-factory>
+         <!-- spring里配置数据库信息 -->
+            
+         <!-- 显示生成的sql语句 ，并格式化-->
+         <property name="hibernate.show_sql">true</property>
+         <property name="hibernate.format_sql">true</property>
+            
+         <!-- 配置自动创建表 -->
+         <property name="hibernate.hbm2ddl.auto">update</property>
+            
+         <!-- 配置所使用的数据库的方言 -->
+         <property name="hibernate.dialect">org.hibernate.dialect.MySQL5InnoDBDialect</property>
+            
+         <!-- 3.配置映射文件-->
+         <mapping resource="entity/User.hbm.xml" />
+            
+     </session-factory>
+ </hibernate-configuration>
+    <p>```</p>
+  </li>
+</ol>
+
+<h3 id="daoservice">dao和service的注入</h3>
+
+<p>Action注入Service，Service注入Dao(Impl)，DaoImp注入sessionFactory</p>
+
+<p>```xml
+<!-- 用Spring生成action对象，注意不要是默认的单例 --></p>
+<bean id="userAction" class="action.UserAction" scope="prototype">
+    <property name="userService" ref="userService"></property>
+</bean>
+
+<bean id="userService" class="service.UserService">
+    <!-- 在代码中是接口，注入的是实现类 -->
+    <property name="userDao" ref="userDaoImpl"></property>
+</bean>
+
+<bean id="userDaoImpl" class="dao.UserDaoImpl">
+    <property name="sessionFactory" ref="sessionFactory"></property>
+</bean>
+<p>```</p>
+
+<h2 id="section-2">测试</h2>
+
+<p>userAction中的代码</p>
+
+<p><code class="highlighter-rouge">java
+@Override
+public String execute() throws Exception {
+    userService.addUser("name123", "1996-05-05", 99);
+    return null;
+}
+</code></p>
+
+<p>userService代码</p>
+
+<p><code class="highlighter-rouge">java
+public void addUser(String name,String brithday,int score){
+    userDao.add(name,brithday,score);
+}
+</code></p>
+
+<p>userDaoImpl代码</p>
+
+<p><code class="highlighter-rouge">java
+@Override
+public void add(String name, String brithday, int score) {
+	Session session = sessionFactory.openSession();
+	User u = new User();
+	u.setName(name);
+	u.setBirthday(brithday);
+	u.setScore(score);
+	session.save(u);
+	session.close();
+}
+</code></p>
+
+<p>通过url访问action,查看数据库是否添加了数据</p>
+
+<p><img src="03.jpg" alt="03" /></p>
+
+<h2 id="section-3">开启事务</h2>
+
+<p>```xml
+<!-- 创建事务管理器 --></p>
+<bean id="transactionManager" class="org.springframework.orm.hibernate4.HibernateTransactionManager">
+    <property name="sessionFactory" ref="sessionFactory"></property>
+</bean>
+
+<!-- 开启事务注解 -->
+<tx:annotation-driven transaction-manager="transactionManager" />
+
+<p>```</p>
+
+<p>在UserService中添加注解</p>
+
+<p><code class="highlighter-rouge">java
+@Transactional
+public class UserService {
+    //...
+}
+</code></p>
+
+<h2 id="hibernatetemplate">使用HibernateTemplate</h2>
+
+<p>生成HibernateTemplate，并在userDaoImpl中注入HibernateTemplate</p>
+
+<p>```xml</p>
+<bean id="userDaoImpl" class="dao.UserDaoImpl">
+    <property name="hibernateTemplate" ref="hibernateTemplate"></property>
+</bean>
+
+<bean id="hibernateTemplate" class="org.springframework.orm.hibernate4.HibernateTemplate">
+    <property name="sessionFactory" ref="sessionFactory"></property>
+</bean>
+<p>```</p>
+
+<p>在UserDaoImpl.java里使用HibernateTemplate</p>
+
+<p>```java
+public class UserDaoImpl implements UserDao {</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>private HibernateTemplate hibernateTemplate;
+
+public void setHibernateTemplate(HibernateTemplate hibernateTemplate) {
+	this.hibernateTemplate = hibernateTemplate;
+}
+
+@Override
+public void add(String name, String brithday, int score) {
+	User u = new User();
+	u.setName(name);
+	u.setBirthday(brithday);
+	u.setScore(score);
+	hibernateTemplate.save(u);
+} } ```
+</code></pre>
+</div>
+
+<h2 id="section-4">错误解决</h2>
+
+<p><code class="highlighter-rouge">
+HTTP Status 500 - Could not open Hibernate Session for transaction; nested exception is java.lang.NoClassDefFoundError: org/hibernate/engine/transaction/spi/TransactionContext
+</code></p>
+
+<p>原因是配置文件中用的是hibernate4,而导入的包是5.x的</p>
+
+<p>```xml
+<!-- 创建事务管理器 --></p>
+<bean id="transactionManager" class="org.springframework.orm.hibernate4.HibernateTransactionManager">
+    <property name="sessionFactory" ref="sessionFactory"></property>
+</bean>
+<p>```</p>
+
+<p>解决方法1：将hibernate-core-5.1.39.Final.jar换成hibernate-core-4.2.4.Final.jar</p>
+
+<p>解决方法2：使用高版本的spring会支持org.springframework.orm.hibernate5.HibernateTransactionManager</p>
+
+<p>这里使用的是方法1</p>
+
+<h2 id="section-5">另一种整合方式</h2>
+
+<p>还有一种整合方式是把hibernate核心配置全部都放到spring中,不需要再建立hibernate核心配置文件了</p>
+
+<p>```xml</p>
+<bean id="sessionFactory" class="org.springframework.orm.hibernate4.LocalSessionFactoryBean">
+	<!-- 注入数据源 -->
+	<property name="dataSource" ref="dataSource"></property>
+	
+	<property name="hibernateProperties">
+		<props>
+			<prop key="hibernate.show_sql">true</prop>
+			<prop key="hibernate.format_sql">true</prop>
+			<prop key="hibernate.hbm2ddl.auto">update</prop>
+			<prop key="hibernate.dialect">org.hibernate.dialect.MySQL5InnoDBDialect</prop>
+		</props>
+	</property>
+	<property name="mappingResources">
+		<list>
+			<value>entity/User.hbm.xml</value>
+		</list>
+	</property>
+&lt;/bean
+```
+
+## 注解方式搭建
+
+引入struts2-convention依赖，让struts配置文件中取消对Action的配置
+
+Spring 自动扫包
+
+```
+<context:component-scan base-package="dao.daoImpl" />
+```
+
+daoImpl添加注解标签
+
+```
+import org.springframework.context.annotation.Scope;
+import org.springframework.stereotype.Component;
+import dao.UserDao;
+
+@Component(value="UserDaoImpl")
+@Scope(value="singleton")
+public class UserDaoImpl implements UserDao{
+	@Override
+	public void sayHello() {
+		System.out.println("Hello");
+	}
+}
+```
+
+在Action里装配dao
+
+```
+import javax.annotation.Resource;
+import org.apache.struts2.convention.annotation.Action;
+import org.apache.struts2.convention.annotation.Result;
+import org.apache.struts2.convention.annotation.Results;
+import com.opensymphony.xwork2.ActionSupport;
+import dao.UserDao;
+
+@Results({
+	@Result(name="ok",location="/test.jsp"),  
+	@Result(name="failure",location="/failure.jsp")})
+@Action(value="test")
+public class UserAction extends ActionSupport{
+	
+	private static final long serialVersionUID = 1L;
+	
+	@Resource(name="UserDaoImpl")
+	UserDao userDao;
+	
+	@Override
+	public String execute() throws Exception {
+		userDao.sayHello();
+		return "ok";
+	}
+}
+```
+</bean>
+</div>
+	</div>
+<footer class="footer">
+    <span>Copyright © 2016 皖ICP备16016174号</span>
+    <a href="/sitemap.xml">网站地图</a>
+    <span>Powered by</span>
+    <a href="https://github.com/TMaize/tmaize-blog">tmaize-blog</a>
+    <div class="up"></div>
+</footer>
+<script>
+    //mta.qq.com 访问统计
+    var _mtac = {};
+    (function() {
+        var mta = document.createElement("script");
+        mta.src = "http://pingjs.qq.com/h5/stats.js?v2.0.2";
+        mta.setAttribute("name", "MTAH5");
+        mta.setAttribute("sid", "500581966");
+        var s = document.getElementsByTagName("script")[0];
+        s.parentNode.insertBefore(mta, s);
+    })();
+    //360的自动推送
+    (function(){
+        var src = (document.location.protocol == "http:") ? "http://js.passport.qihucdn.com/11.0.1.js?0b7f3f19682121293c3e4b62c9740281":"https://jspassport.ssl.qhimg.com/11.0.1.js?0b7f3f19682121293c3e4b62c9740281";
+        document.write('<script src="' + src + '" id="sozz"><\/script>');
+    })();
+    //百度的自动推送
+    (function(){
+        var bp = document.createElement('script');
+        var curProtocol = window.location.protocol.split(':')[0];
+        if (curProtocol === 'https') {
+            bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';
+        }
+        else {
+            bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+        }
+        var s = document.getElementsByTagName("script")[0];
+        s.parentNode.insertBefore(bp, s);
+    })();
+</script>
+</body>
+</html>

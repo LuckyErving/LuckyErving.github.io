@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+		<meta http-equiv="content-language" content="zh-CN" />
+		<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+		<meta name="keywords" content="TMaize,java"/>
+		<meta name="author" content="TMaize" />
+		<meta name="description" content="Struts2学习-03 页面配置 获取数据"/>
+		<link rel="icon" href="/static/img/favicon.ico" type="image/x-icon" />
+		<link rel="shortcut icon" href="/static/img/favicon.ico" type="image/x-icon"/>
+		<link rel="stylesheet" href="/static/css/blog.css">
+		<link rel="stylesheet" href="/static/css/blog-post.css">
+		<script>window.blog={contextPath:""}</script>
+		<script type="text/javascript" src="/static/js/blog.js"></script>
+		<title>Struts2学习-03 页面配置 获取数据-TMaize Blog</title>
+	</head>
+<body>
+<header class="header select-none">
+    <a class="logo" title="TMaize Blog" href="/">
+        <img src="/static/img/logo.jpg">
+    </a>
+    <a class="title" href="/">TMaize Blog</a>
+    <nav class="menu">
+        <a href="/">Blog</a>
+        <a href="/pages/categories.html">Categories</a>
+        <a href="/pages/search.html">Search</a>
+        <a href="/pages/links.html">Links</a>
+        <a href="/pages/chat.html">Chat</a>
+        <a href="/pages/about.html">About</a>
+    </nav>
+    <span class="icon"></span>
+</header>
+	<div class="main animation-fadeUp post">
+		
+		<h1 class="title">Struts2学习-03 页面配置 获取数据</h1>
+		
+		<div class="content"><h2 id="section">配置结果页面</h2>
+
+<h3 id="section-1">全局结果页面</h3>
+
+<p>多个action的方法的返回值相同，跳转的页面页相同，为了可以通过配置全局结果页面减少配置文件的书写</p>
+
+<p>注意：先从<action>里面的result的name匹配，没找到再找global-results里面的result的name</action></p>
+
+<p>```xml
+<!-- 配置在package里 --></p>
+<global-results>
+    <result name="error">/error.jsp</result>
+</global-results>
+<p>```</p>
+
+<h3 id="section-2">局部结果页面</h3>
+
+<p>在action里面配置的result</p>
+
+<p>注意：先从<action>里面的result的name匹配，没找到再找global-results里面的result的name</action></p>
+
+<p>```xml</p>
+<action name="s_*" class="com.day01.Test" method="{1}">
+    <result name="add">/test1.jsp</result>
+    <result name="delete">/test2.jsp</result>
+    <allowed-methods>add,delete</allowed-methods>
+</action>
+<p>```</p>
+
+<h3 id="resulttype">result标签的type属性</h3>
+
+<p>转发操作不改变url地址，一次请求</p>
+
+<p>重定向会改变url地址，多次请求</p>
+
+<p>默认值dispatcher</p>
+
+<ul>
+  <li>chain 由于缓存为题一般不用，而是用redirectAction，内容填写<action>标签的name属性值</action></li>
+</ul>
+
+<table>
+  <thead>
+    <tr>
+      <th>已配置结果类型名</th>
+      <th style="text-align: center">类名</th>
+      <th style="text-align: right">描述</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>dispatcher</td>
+      <td style="text-align: center">org.apache.struts2.dispatcher.ServletDispatcherResult</td>
+      <td style="text-align: right">默认结果类型，用来呈现JSP页面</td>
+    </tr>
+    <tr>
+      <td>chain</td>
+      <td style="text-align: center">com.opensymphony.xwork2.ActionChainResult</td>
+      <td style="text-align: right">将action和另外一个action链接起来</td>
+    </tr>
+    <tr>
+      <td>freemarker</td>
+      <td style="text-align: center">org.apache.struts2.views.freemarker.FreemarkerResult</td>
+      <td style="text-align: right">呈现Freemarker模板</td>
+    </tr>
+    <tr>
+      <td>httpheader</td>
+      <td style="text-align: center">org.apache.struts2.dispatcher.HttpHeaderResult</td>
+      <td style="text-align: right">返回一个已配置好的HTTP头信息响应</td>
+    </tr>
+    <tr>
+      <td>redirect</td>
+      <td style="text-align: center">org.apache.struts2.dispatcher.ServletRedirectResult</td>
+      <td style="text-align: right">将用户重定向到一个已配置好的URL</td>
+    </tr>
+    <tr>
+      <td>redirectAction</td>
+      <td style="text-align: center">org.apache.struts2.dispatcher.ServletActionRedirectResult</td>
+      <td style="text-align: right">将用户重定向到一个已定义好的action</td>
+    </tr>
+    <tr>
+      <td>stream</td>
+      <td style="text-align: center">org.apache.struts2.dispatcher.StreamResult</td>
+      <td style="text-align: right">将原始数据作为流传递回浏览器端，该结果类型对下载的内容和图片非常有用</td>
+    </tr>
+    <tr>
+      <td>velocity</td>
+      <td style="text-align: center">org.apache.struts2.dispatcher.VelocityResult</td>
+      <td style="text-align: right">呈现Velocity模板</td>
+    </tr>
+    <tr>
+      <td>xslt</td>
+      <td style="text-align: center">org.apache.struts2.views.xslt.XSLTResult</td>
+      <td style="text-align: right">呈现XML到浏览器，该XML可以通过XSL模板进行转换</td>
+    </tr>
+    <tr>
+      <td>plaintext</td>
+      <td style="text-align: center">org.apache.struts2.dispatcher.PlainTextResult</td>
+      <td style="text-align: right">返回普通文本</td>
+    </tr>
+  </tbody>
+</table>
+
+<h2 id="action">在action里获得数据</h2>
+
+<p>由于Struts默认配置了字符编码，所以post提交表单时不会有乱码</p>
+
+<ol>
+  <li>
+    <p>使用ActionContext类</p>
+
+    <p>```java
+ //获取当前线程的ActionContext对象
+ ActionContext actionContext = ActionContext.getContext();</p>
+
+    <p>//在2.5之前是Map&lt;String, Object&gt;
+ //Object[] obj = (Object[])map.get(key)</p>
+
+    <p>//2.5
+ //public class HttpParameters implements Map&lt;String, Parameter&gt;
+ HttpParameters form = actionContext.getParameters();
+ Parameter p = form.get(“name”);
+ p.getValue()//一般情况
+ getMultipleValues()//复选框
+ ```</p>
+
+    <p>完整代码</p>
+
+    <p><code class="highlighter-rouge">java
+ ActionContext actionContext = ActionContext.getContext();
+ HttpParameters httpParameters = actionContext.getParameters();
+ for(String key:httpParameters.keySet()){
+     Parameter parameter = httpParameters.get(key);
+     for(String value:parameter.getMultipleValues()){
+         System.out.println("name="+key+" value="+value);
+     }
+ }
+</code></p>
+  </li>
+  <li>
+    <p>使用ServletActionContext类</p>
+
+    <p>直接调用里面的静态方法,得到HttpServletRequest和Servlet里面的操作一样</p>
+
+    <p><code class="highlighter-rouge">java
+ HttpServletRequest request = ServletActionContext.getRequest();
+ request.getParameter(arg0);
+ request.getParameterValues(arg0);
+</code></p>
+  </li>
+  <li>
+    <p>使用接口注入方式</p>
+
+    <p>Action类实现ServletRequestAware接口，设置setServletRequest方法来得到一个HttpServletRequest对象</p>
+  </li>
+</ol>
+
+<h2 id="action-1">在action中操作域对象</h2>
+
+<p>通过ServletActionContext来获取域对象</p>
+
+<ul>
+  <li>HttpServletRequest</li>
+  <li>HttpSession</li>
+  <li>ServletContext</li>
+  <li>PageContext</li>
+</ul>
+
+<p>通过setAttribute方法来操作域对象</p>
+
+<h2 id="struts">使用struts封装的方式获取数据</h2>
+
+<h3 id="section-3">属性封装</h3>
+
+<p>直接把表单提交属性封装到Actiond的属性里面</p>
+
+<p>由于直接封装到实体类中比较麻烦，先生成user的get/set方法，同时提交的表单的name要为user.name这种格式</p>
+
+<p>因此又提供了模型驱动封装</p>
+
+<p>注意:模型封装和属性驱动封装不能够同时使用</p>
+
+<p>如果都用，那么属性封装无法得到值，模型驱动可以</p>
+
+<p>框架底层是通过内省的方式实现的</p>
+
+<p>实现步骤</p>
+
+<ol>
+  <li>
+    <p>在action成员变量位置定义变量，变量名和表单输入项的name要一样，一般是private</p>
+  </li>
+  <li>
+    <p>生成这些变量的get/set方法</p>
+  </li>
+  <li>
+    <p>提交数据到action中时，会自动封装到这些成员变量</p>
+  </li>
+</ol>
+
+<h3 id="section-4">模型驱动封装(开发中常用)</h3>
+
+<p>可以把数据直接封装到对象里面,前提条件是实体类中的属性值的名字和表单输入项的name要一样</p>
+
+<p>实现步骤</p>
+
+<ol>
+  <li>
+    <p>Action实现接口ModelDriven</p>
+  </li>
+  <li>
+    <p>实现接口里面的getModel方法，把创建对象返回</p>
+  </li>
+  <li>
+    <p>在Action里面创建实体类对象</p>
+
+    <p>```java
+ public class Test extends ActionSupport implements ModelDriven<user>{</user></p>
+
+    <div class="highlighter-rouge"><pre class="highlight"><code> private User user;
+
+ @Override
+ public User getModel() {
+     return user;
+ }  }  ```
+</code></pre>
+    </div>
+  </li>
+</ol>
+
+<h3 id="section-5">表达式封装</h3>
+
+<p>有时候也把表达式封装分类为属性封装</p>
+
+<p>注意在form表单中的name值user.username的user要与action里的private User user一样
+user.username的username要在User里面有同名属性且提供get/set</p>
+
+<p>使用表达式封装和模型驱动封装都可以把数据封装到实体类对象里面。</p>
+
+<p>使用模型驱动封装只能封装到一个实体类对象，使用表达式封装可以将数据封装到多个实体类对象中。
+例如下面的代码</p>
+
+<p>实现步骤</p>
+
+<ol>
+  <li>
+    <p>在action里声明实体类</p>
+  </li>
+  <li>
+    <p>生成实体类变量的get/set方法</p>
+  </li>
+  <li>
+    <p>在表单输入项的names属性值里面写表达式</p>
+
+    <p>```java
+ private User user;
+ private Book book;</p>
+
+    <p>//必须要有get
+ public User getUser() {
+     return user;
+ }</p>
+
+    <p>public void setUser(User user) {
+     this.user = user;
+ }</p>
+
+    <p>public User getBook() {
+     return book;
+ }</p>
+
+    <p>public void setBook(Book book) {
+     this.book = book;
+ }
+ ```</p>
+
+    <p><code class="highlighter-rouge">html
+ &lt;input type="text" name="user.username"&gt;
+ &lt;input type="password" name="user.password"&gt;
+ &lt;input type="text" name="book.name"&gt;
+</code></p>
+  </li>
+</ol>
+
+<h3 id="section-6">封装数据到集合中</h3>
+
+<ol>
+  <li>
+    <p>封装到List</p>
+
+    <p><code class="highlighter-rouge">java
+ private List&lt;User&gt; list;
+ //get/set方法
+</code></p>
+
+    <p><code class="highlighter-rouge">html
+ &lt;input type="text" name="list[0].username"&gt;
+ &lt;input type="number" name="list[0].age"&gt;
+ &lt;input type="text" name="list[1].username"&gt;
+ &lt;input type="number" name="list[1].age"&gt;
+</code></p>
+  </li>
+  <li>
+    <p>封装到Map(用的比较少)</p>
+
+    <p>步骤，和封装到list相似</p>
+
+    <p>声明map集合变量</p>
+
+    <p>生成get/set方法</p>
+
+    <p>在表单输入项的name属性值里面写表达式</p>
+
+    <p><code class="highlighter-rouge">java
+ private Map&lt;String,User&gt; map;
+ //get/set方法
+</code></p>
+
+    <p><code class="highlighter-rouge">html
+ &lt;input type="text" name="map['one'].username"&gt;
+ &lt;input type="number" name="map['one'].age"&gt;
+ &lt;input type="text" name="map['a'].username"&gt;
+ &lt;input type="number" name="map['a'].age"&gt;
+</code></p>
+  </li>
+</ol>
+</div>
+	</div>
+<footer class="footer">
+    <span>Copyright © 2016 皖ICP备16016174号</span>
+    <a href="/sitemap.xml">网站地图</a>
+    <span>Powered by</span>
+    <a href="https://github.com/TMaize/tmaize-blog">tmaize-blog</a>
+    <div class="up"></div>
+</footer>
+<script>
+    //mta.qq.com 访问统计
+    var _mtac = {};
+    (function() {
+        var mta = document.createElement("script");
+        mta.src = "http://pingjs.qq.com/h5/stats.js?v2.0.2";
+        mta.setAttribute("name", "MTAH5");
+        mta.setAttribute("sid", "500581966");
+        var s = document.getElementsByTagName("script")[0];
+        s.parentNode.insertBefore(mta, s);
+    })();
+    //360的自动推送
+    (function(){
+        var src = (document.location.protocol == "http:") ? "http://js.passport.qihucdn.com/11.0.1.js?0b7f3f19682121293c3e4b62c9740281":"https://jspassport.ssl.qhimg.com/11.0.1.js?0b7f3f19682121293c3e4b62c9740281";
+        document.write('<script src="' + src + '" id="sozz"><\/script>');
+    })();
+    //百度的自动推送
+    (function(){
+        var bp = document.createElement('script');
+        var curProtocol = window.location.protocol.split(':')[0];
+        if (curProtocol === 'https') {
+            bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';
+        }
+        else {
+            bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+        }
+        var s = document.getElementsByTagName("script")[0];
+        s.parentNode.insertBefore(bp, s);
+    })();
+</script>
+</body>
+</html>

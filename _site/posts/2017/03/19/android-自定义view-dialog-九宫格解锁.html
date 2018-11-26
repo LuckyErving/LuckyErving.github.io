@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+		<meta http-equiv="content-language" content="zh-CN" />
+		<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+		<meta name="keywords" content="TMaize,android"/>
+		<meta name="author" content="TMaize" />
+		<meta name="description" content="android 自定义view/dialog-九宫格解锁"/>
+		<link rel="icon" href="/static/img/favicon.ico" type="image/x-icon" />
+		<link rel="shortcut icon" href="/static/img/favicon.ico" type="image/x-icon"/>
+		<link rel="stylesheet" href="/static/css/blog.css">
+		<link rel="stylesheet" href="/static/css/blog-post.css">
+		<script>window.blog={contextPath:""}</script>
+		<script type="text/javascript" src="/static/js/blog.js"></script>
+		<title>android 自定义view/dialog-九宫格解锁-TMaize Blog</title>
+	</head>
+<body>
+<header class="header select-none">
+    <a class="logo" title="TMaize Blog" href="/">
+        <img src="/static/img/logo.jpg">
+    </a>
+    <a class="title" href="/">TMaize Blog</a>
+    <nav class="menu">
+        <a href="/">Blog</a>
+        <a href="/pages/categories.html">Categories</a>
+        <a href="/pages/search.html">Search</a>
+        <a href="/pages/links.html">Links</a>
+        <a href="/pages/chat.html">Chat</a>
+        <a href="/pages/about.html">About</a>
+    </nav>
+    <span class="icon"></span>
+</header>
+	<div class="main animation-fadeUp post">
+		
+		<h1 class="title">android 自定义view/dialog-九宫格解锁</h1>
+		
+		<div class="content"><p>最近在用快图的时候发现了一种漂亮的Dialog,如下图所示</p>
+
+<p>本以为会有现成的轮子，结果在GitHub上找半天没找到,自己写了一个，<a href="https://github.com/TMaize/lock-view">项目地址-GitHub</a></p>
+
+<p><img src="01.png" alt="一种漂亮的Dialog" /></p>
+
+<h2 id="section">主要代码实现</h2>
+
+<p>主要的难点就是绘图,点的状态的表示，以及完成输入的回调函数</p>
+
+<ol>
+  <li>
+    <p>Point.java</p>
+
+    <p>点的表示</p>
+
+    <p>```java
+ //点的信息
+ public float x, y;
+ private int num;</p>
+
+    <p>//range式半径扩大后的范围，在圆形的外接正方形内判断
+ public static Point isOnPoint(float x,float y,float range,Point[][] points){
+     for (int i=0;i&lt;points.length;i++){
+         for (int j=0;j&lt;points[i].length;j++){
+             if (x&gt;=points[i][j].getX()-range &amp;&amp; x&lt;=points[i][j].getX()+range &amp;&amp; y&gt;=points[i][j].getY()-range &amp;&amp; y&lt;=points[i][j].getY()+range){
+                 return points[i][j];
+             }
+         }
+     }
+     return null;
+ }
+ ```</p>
+  </li>
+  <li>
+    <p>LockView.java</p>
+
+    <p>核心view</p>
+
+    <p>```java
+ //变量
+ private String input = null;
+ private Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG);
+ private float radius = 20;
+ private Point[][] points = null;
+ private List<point> points_hovered = new ArrayList&lt;&gt;();
+ private boolean action_up;
+ private InputFinshListrner inputFinshListrner;
+ float moveX;
+ float moveY;</point></p>
+
+    <p>//绘图
+ @Override
+ protected void onDraw(Canvas canvas) {</p>
+
+    <div class="highlighter-rouge"><pre class="highlight"><code> paint.setColor(Color.BLACK);
+ //设置线的粗细
+ paint.setStrokeWidth(10);
+
+ float x_width = canvas.getWidth() / 6;
+ float y_height = canvas.getHeight() / 6;
+
+ if (points==null){
+     points = new Point[3][3];
+     for (int i = 0; i &lt; 3; i++) {
+         for (int j = 0; j &lt; 3; j++) {
+             points[i][j] = new Point((2 * j + 1) * x_width,(2 * i + 1) * y_height,3*i+j+1);
+             canvas.drawCircle(points[i][j].getX(), points[i][j].getY(), radius, paint);
+         }
+     }
+ }else{
+     for (int i = 0; i &lt; 3; i++) {
+         for (int j = 0; j &lt; 3; j++) {
+             canvas.drawCircle(points[i][j].getX(), points[i][j].getY(), radius, paint);
+         }
+     }
+ }
+
+
+ int size = points_hovered.size();
+
+ //两点之间有线可以连接
+ if (size&gt;=2){
+     for (int i=0;i&lt;size-1;i++){
+         canvas.drawLine(points_hovered.get(i).getX(), points_hovered.get(i).getY(),points_hovered.get(i+1).getX(), points_hovered.get(i+1).getY(),paint);
+     }
+ }
+
+ //跟着手指的一条线
+ if (size&gt;=1){
+     if (!action_up){
+         canvas.drawLine(points_hovered.get(size-1).getX(), points_hovered.get(size-1).getY(),moveX,moveY,paint);
+     }
+
+ }
+
+ //最后一个圆点要突出,同时最后抬起来时最后一个圆的要缩回去
+ if (size&gt;=1) {
+     if (action_up){
+         canvas.drawCircle(points_hovered.get(size-1).getX(), points_hovered.get(size-1).getY(), radius, paint);
+     }else{
+         canvas.drawCircle(points_hovered.get(size-1).getX(), points_hovered.get(size-1).getY(), radius+10, paint);
+     }
+ }
+</code></pre>
+    </div>
+
+    <p>}</p>
+
+    <p>//触摸事件
+ @Override
+ public boolean onTouchEvent(MotionEvent event) {</p>
+
+    <div class="highlighter-rouge"><pre class="highlight"><code> action_up = false;
+
+ switch (event.getAction()) {
+     case MotionEvent.ACTION_DOWN://按下的状态
+
+         moveX = event.getX();
+         moveY = event.getY();
+         addToHovered(Point.isOnPoint(event.getX(),event.getY(), 3*radius,points));
+         break;
+     case MotionEvent.ACTION_MOVE://移动状态
+         moveX = event.getX();
+         moveY = event.getY();
+         addToHovered(Point.isOnPoint(event.getX(),event.getY(), 3*radius,points));
+         break;
+     case MotionEvent.ACTION_UP://松开后的状态
+         action_up = true;
+         StringBuilder sb = new StringBuilder();
+         for (Point p:points_hovered){
+             sb.append(String.valueOf(p.getNum()));
+         }
+         input = sb.toString();
+         //回调函数
+         inputFinshListrner.doAfterinput();
+         points_hovered.clear();
+         break;
+ }
+
+ //重绘,重新调用onDraw方法
+ postInvalidate();
+ return true;  }
+</code></pre>
+    </div>
+
+    <p>//设置回调函数
+ public void setInputFinshListrner(InputFinshListrner inputFinshListrner){
+     this.inputFinshListrner = inputFinshListrner;
+ }</p>
+
+    <p>//手指移动到点上时要把不存在的添加进去
+ private void addToHovered(Point p){
+     if (p!=null){
+         for (Point pp:points_hovered){
+             if (pp.getNum()==p.getNum()){
+                 return ;
+             }
+         }
+         points_hovered.add(p);
+     }
+ }</p>
+
+    <p>//获得手指离开后最后的输入结果
+ public String getInput(){
+     if (input==null){
+         return “null”;
+     }else {
+         return input;
+     }
+ }
+ ```</p>
+  </li>
+  <li>
+    <p>InputFinshListrner.java</p>
+
+    <p>回调接口</p>
+
+    <p><code class="highlighter-rouge">java
+ public interface InputFinshListrner {
+     void doAfterinput();
+ }
+</code></p>
+  </li>
+  <li>
+    <p>main.java</p>
+
+    <p>测试类</p>
+
+    <p><code class="highlighter-rouge">java
+ private void initLockView_main() {
+         lockView_main = (LockView) findViewById(R.id.lockiew_main);
+         lockView_main.setInputFinshListrner(new InputFinshListrner() {
+             @Override
+             public void doAfterinput() {
+                 Toast.makeText(mContext, lockView_main.getInput(), Toast.LENGTH_SHORT).show();
+             }
+         });
+     }
+</code></p>
+  </li>
+  <li>
+    <p>使用时的布局</p>
+
+    <p>```xml</p>
+    <relativelayout android:layout_width="wrap_content" android:layout_height="0dp" android:layout_weight="9">
+
+     <net.tmaize.lockview.view.lockview android:id="@+id/lockiew_main" android:layout_width="match_parent" android:layout_height="wrap_content" />
+
+ </relativelayout>
+    <p>```</p>
+  </li>
+  <li>
+    <p>Demo预览</p>
+
+    <p><img src="02.gif" alt="Demo预览" /></p>
+  </li>
+</ol>
+
+<h2 id="section-1">总结</h2>
+
+<p>主要的难点就是绘图,点的状态的表示，以及完成输入的回调函数</p>
+
+<p>更多代码及Demo在<a href="https://github.com/TMaize/lock-view">项目地址-GitHub</a></p>
+</div>
+	</div>
+<footer class="footer">
+    <span>Copyright © 2016 皖ICP备16016174号</span>
+    <a href="/sitemap.xml">网站地图</a>
+    <span>Powered by</span>
+    <a href="https://github.com/TMaize/tmaize-blog">tmaize-blog</a>
+    <div class="up"></div>
+</footer>
+<script>
+    //mta.qq.com 访问统计
+    var _mtac = {};
+    (function() {
+        var mta = document.createElement("script");
+        mta.src = "http://pingjs.qq.com/h5/stats.js?v2.0.2";
+        mta.setAttribute("name", "MTAH5");
+        mta.setAttribute("sid", "500581966");
+        var s = document.getElementsByTagName("script")[0];
+        s.parentNode.insertBefore(mta, s);
+    })();
+    //360的自动推送
+    (function(){
+        var src = (document.location.protocol == "http:") ? "http://js.passport.qihucdn.com/11.0.1.js?0b7f3f19682121293c3e4b62c9740281":"https://jspassport.ssl.qhimg.com/11.0.1.js?0b7f3f19682121293c3e4b62c9740281";
+        document.write('<script src="' + src + '" id="sozz"><\/script>');
+    })();
+    //百度的自动推送
+    (function(){
+        var bp = document.createElement('script');
+        var curProtocol = window.location.protocol.split(':')[0];
+        if (curProtocol === 'https') {
+            bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';
+        }
+        else {
+            bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+        }
+        var s = document.getElementsByTagName("script")[0];
+        s.parentNode.insertBefore(bp, s);
+    })();
+</script>
+</body>
+</html>

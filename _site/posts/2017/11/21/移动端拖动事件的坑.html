@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+		<meta http-equiv="content-language" content="zh-CN" />
+		<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+		<meta name="keywords" content="TMaize,javascript"/>
+		<meta name="author" content="TMaize" />
+		<meta name="description" content="移动端拖动事件的坑"/>
+		<link rel="icon" href="/static/img/favicon.ico" type="image/x-icon" />
+		<link rel="shortcut icon" href="/static/img/favicon.ico" type="image/x-icon"/>
+		<link rel="stylesheet" href="/static/css/blog.css">
+		<link rel="stylesheet" href="/static/css/blog-post.css">
+		<script>window.blog={contextPath:""}</script>
+		<script type="text/javascript" src="/static/js/blog.js"></script>
+		<title>移动端拖动事件的坑-TMaize Blog</title>
+	</head>
+<body>
+<header class="header select-none">
+    <a class="logo" title="TMaize Blog" href="/">
+        <img src="/static/img/logo.jpg">
+    </a>
+    <a class="title" href="/">TMaize Blog</a>
+    <nav class="menu">
+        <a href="/">Blog</a>
+        <a href="/pages/categories.html">Categories</a>
+        <a href="/pages/search.html">Search</a>
+        <a href="/pages/links.html">Links</a>
+        <a href="/pages/chat.html">Chat</a>
+        <a href="/pages/about.html">About</a>
+    </nav>
+    <span class="icon"></span>
+</header>
+	<div class="main animation-fadeUp post">
+		
+		<h1 class="title">移动端拖动事件的坑</h1>
+		
+		<div class="content"><p>最近在做播放器的时候遇到的一个小坑坑。。。</p>
+
+<p>在PC上用mousedown等事件来实现进度条的拖动，在PC上是一切OK的，放到手机上一切都失效了</p>
+
+<p>经过查阅才知道是手机上没有mouse事件，全部换成了touch事件，代码做了一些改动</p>
+
+<p><img src="1.png" alt="1" /></p>
+
+<p>```
+//拖动进度条
+function initDragProgress() {
+    var params = {};
+    var dot = _this.mPlayer.querySelector(‘.mp-main-control-progresss-thumb’);
+    var parent = _this.mPlayer.querySelector(‘.mp-main-control-progresss’);
+    var played = _this.mPlayer.querySelector(‘.mp-main-control-progresss-played’);</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>function down() {
+    if (playId &gt;= 0) {
+        _this.stop();
+        //兼容触摸屏
+        var touch = event;
+        if (event.touches) {
+            touch = event.touches[0];
+        }
+        params.flag = true;
+        params.parentWith = parent.offsetWidth;
+        params.played = played.style.width;
+        params.startX = touch.clientX;
+    }
+}
+
+function move() {
+    if (params.flag) {
+        var touch;
+        if (event.touches) {
+            touch = event.touches[0];
+            document.addEventListener("touchmove", function () {
+                touch.preventDefault();
+            }, false);
+        } else {
+            touch = event;
+            if (touch.preventDefault) {
+                touch.preventDefault();
+            } else {
+                touch.returnValue = false;
+            }
+        }
+        var moveLength = touch.clientX - params.startX;
+        //根据音乐时长与实际px的比例计算跳过的时间
+        var moveB = _this.player.duration / params.parentWith * (moveLength) / _this.player.duration * 100;
+        var calc = parseInt(params.played) + moveB;
+        if (calc &lt;= 0) {
+            calc = 0;
+        }
+        if (calc &gt;= 100) {
+            calc = 100;
+        }
+        played.style.width = parseInt(calc) + "%";
+    }
+}
+
+function up() {
+    if (params.flag) {
+        var stopTime = _this.player.duration * parseInt(played.style.width) * 0.01;
+        if (stopTime &lt;= 0) {
+            _this.player.currentTime = 0;
+        } else if (stopTime &gt;= _this.player.duration) {
+            stopTime = _this.player.duration - 1;
+        }
+        _this.player.currentTime = stopTime;
+        _this.play();
+        params.flag = false;
+    }
+}
+
+if (window.attachEvent) {
+    dot.attachEvent('onmousedown', down);
+    document.attachEvent("onmousemove", move);
+    document.attachEvent("onmouseup", up);
+} else if (window.addEventListener) {
+    dot.addEventListener('mousedown', down, false);
+    document.addEventListener("mousemove", move, false);
+    document.addEventListener("mouseup", up, false);
+    dot.addEventListener('touchstart', down, false);
+    document.addEventListener("touchmove", move, false);
+    document.addEventListener("touchend", up, false);
+}
+</code></pre>
+</div>
+
+<p>}
+```</p>
+</div>
+	</div>
+<footer class="footer">
+    <span>Copyright © 2016 皖ICP备16016174号</span>
+    <a href="/sitemap.xml">网站地图</a>
+    <span>Powered by</span>
+    <a href="https://github.com/TMaize/tmaize-blog">tmaize-blog</a>
+    <div class="up"></div>
+</footer>
+<script>
+    //mta.qq.com 访问统计
+    var _mtac = {};
+    (function() {
+        var mta = document.createElement("script");
+        mta.src = "http://pingjs.qq.com/h5/stats.js?v2.0.2";
+        mta.setAttribute("name", "MTAH5");
+        mta.setAttribute("sid", "500581966");
+        var s = document.getElementsByTagName("script")[0];
+        s.parentNode.insertBefore(mta, s);
+    })();
+    //360的自动推送
+    (function(){
+        var src = (document.location.protocol == "http:") ? "http://js.passport.qihucdn.com/11.0.1.js?0b7f3f19682121293c3e4b62c9740281":"https://jspassport.ssl.qhimg.com/11.0.1.js?0b7f3f19682121293c3e4b62c9740281";
+        document.write('<script src="' + src + '" id="sozz"><\/script>');
+    })();
+    //百度的自动推送
+    (function(){
+        var bp = document.createElement('script');
+        var curProtocol = window.location.protocol.split(':')[0];
+        if (curProtocol === 'https') {
+            bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';
+        }
+        else {
+            bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+        }
+        var s = document.getElementsByTagName("script")[0];
+        s.parentNode.insertBefore(bp, s);
+    })();
+</script>
+</body>
+</html>

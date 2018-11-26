@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+		<meta http-equiv="content-language" content="zh-CN" />
+		<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+		<meta name="keywords" content="TMaize,javascript"/>
+		<meta name="author" content="TMaize" />
+		<meta name="description" content="使用Webpack"/>
+		<link rel="icon" href="/static/img/favicon.ico" type="image/x-icon" />
+		<link rel="shortcut icon" href="/static/img/favicon.ico" type="image/x-icon"/>
+		<link rel="stylesheet" href="/static/css/blog.css">
+		<link rel="stylesheet" href="/static/css/blog-post.css">
+		<script>window.blog={contextPath:""}</script>
+		<script type="text/javascript" src="/static/js/blog.js"></script>
+		<title>使用Webpack-TMaize Blog</title>
+	</head>
+<body>
+<header class="header select-none">
+    <a class="logo" title="TMaize Blog" href="/">
+        <img src="/static/img/logo.jpg">
+    </a>
+    <a class="title" href="/">TMaize Blog</a>
+    <nav class="menu">
+        <a href="/">Blog</a>
+        <a href="/pages/categories.html">Categories</a>
+        <a href="/pages/search.html">Search</a>
+        <a href="/pages/links.html">Links</a>
+        <a href="/pages/chat.html">Chat</a>
+        <a href="/pages/about.html">About</a>
+    </nav>
+    <span class="icon"></span>
+</header>
+	<div class="main animation-fadeUp post">
+		
+		<h1 class="title">使用Webpack</h1>
+		
+		<div class="content"><p>webpack 是现在流行的前端打包工具，用于模块化开发，从一个入口文件开始，将所有依赖打包成一个 JS 文件</p>
+
+<p>最近抽空学习了下，虽然很不习惯现在的前端搞得比后端都要复杂，但是对于大项目来说，想要便于维护是肯定要模块化开发的，webpack 就是最佳的选择</p>
+
+<h2 id="section">最简单的例子</h2>
+
+<p>准备一个空的 package.json</p>
+
+<p><code class="highlighter-rouge"><span class="w">
+</span><span class="p">{</span><span class="w">
+    </span><span class="nt">"name"</span><span class="p">:</span><span class="w"> </span><span class="s2">"wp-demo"</span><span class="p">,</span><span class="w">
+    </span><span class="nt">"version"</span><span class="p">:</span><span class="w"> </span><span class="s2">"1.0.0"</span><span class="p">,</span><span class="w">
+    </span><span class="nt">"scripts"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+        </span><span class="nt">"build"</span><span class="p">:</span><span class="w"> </span><span class="s2">"webpack --config ./build/webpack.dev.js"</span><span class="w">
+    </span><span class="p">}</span><span class="w">
+</span><span class="p">}</span><span class="w">
+</span></code></p>
+
+<p>安装 webpack，建议局部作为开发依赖安装</p>
+
+<p><code class="highlighter-rouge">
+npm install webpack -D
+npm install webpack-cli -D
+</code></p>
+
+<p>当我们执行<code class="highlighter-rouge">npm run build</code>的时候机会执行<code class="highlighter-rouge">webpack --config ./build/webpack.dev.js</code>,所以还要建立一个<code class="highlighter-rouge">webpack.dev.js</code>文件用于配置 webpack</p>
+
+<p><code class="highlighter-rouge">
+module.exports = {
+    // development开发模式,有热部署功能,代码不压缩,生产模式填写production
+    mode: 'development',
+    //指定入口文件，将这个文件的所有依赖打包成一个js文件
+    entry: './src/index.js',
+    output: {
+        // 打包生成的文件最终会放置在./dist/bundle.js
+        filename: './bundle.js'
+    }
+}
+</code></p>
+
+<p>下面就可以以模块化的思想来写代码了，从入口文件开始，先假设入口文件依赖某个模块<code class="highlighter-rouge">my_module.js</code></p>
+
+<p>```
+/<strong>**</strong><strong><em>index.js</em></strong><strong>**</strong><em>**</em>/
+// 导入模块
+import {f1} from ‘./my_module’
+// 使用模块
+f1();</p>
+
+<p>/<strong>**</strong><em>my_module.js</em><strong>**</strong><strong>**</strong>/
+function f1(){
+    alert(1);
+}</p>
+
+<p>export {
+    f1
+}
+```</p>
+
+<p>最终目录如下</p>
+
+<p><img src="dir-show.png" alt="dir-show" /></p>
+
+<p>执行<code class="highlighter-rouge">npm run build</code>之后，会在 dist 目录下生成 bundle.js</p>
+
+<p>想要查看效果，需要手动新建一个 html 文件，引入 dist 目录下生成的打包后的 js 文件即可</p>
+
+<h2 id="section-1">启动服务</h2>
+
+<p>webpack 提供了一个本地服务器，便于开发，同时支持热部署，简单地配置下就能够使用了</p>
+
+<p><code class="highlighter-rouge">
+npm install webpack-dev-server -D
+</code></p>
+
+<p>同时<code class="highlighter-rouge">package.json</code>文件添加启动脚本``</p>
+
+<p><code class="highlighter-rouge">
+"scripts": {
+    "build": "webpack --config ./build/webpack.dev.js",
+    "start": "webpack-dev-server --config ./build/webpack.dev.js"
+}
+</code></p>
+
+<p>在<code class="highlighter-rouge">webpack.dev.js</code>添加 devServer 的配置</p>
+
+<p>```
+// 引入path模块
+const path = require(“path”)</p>
+
+<p>// 在module.exports添加下面的节点
+devServer: {
+    //默认根目录是在webpack.config同一级的目录下
+    contentBase: path.join(__dirname, ‘../dist’),
+    port: 8888,
+    host: ‘127.0.0.1’,
+    compress: false, // gzip传输
+    open: true // 自动打开浏览器
+}
+```</p>
+
+<p>然后<code class="highlighter-rouge">npm run start</code>即可启动项目，注意要在 dist 目录下添加一个 index.html 文件并引入生成的 bundle，然后再<code class="highlighter-rouge">127.0.0.1:8888</code>访问项目</p>
+
+<h2 id="section-2">插件</h2>
+
+<p>webpack 这么火的一个原因正是由于它有丰富的插件可以使用</p>
+
+<h3 id="html-webpack-plugin">html-webpack-plugin</h3>
+
+<p>上面我们的项目可以跑起来了，但是有没有感觉手动建立 index.html 文件，然后引入生成的打包文件很麻烦？</p>
+
+<p>而且有时候为了避免生产缓存，一般这么配置<code class="highlighter-rouge">filename: './bundle-[hash].js'</code>，显然手动建立 index.html 引入打包文件是不现实的了</p>
+
+<p>html-webpack-plugin 就是用来解决这个问题的，他可以自己建立或者根据模板建立 html 文件，同时引入打包生成的 js 文件</p>
+
+<p><code class="highlighter-rouge">
+npm install html-webpack-plugin -D
+</code></p>
+
+<p>在<code class="highlighter-rouge">webpack.dev.js</code>添加 plugins 的配置</p>
+
+<p>```
+const htmlWebpackPlugin = require(‘html-webpack-plugin’)</p>
+
+<p>// 在module.exports添加下面的节点
+plugins: [
+    new htmlWebpackPlugin({
+        title: “这是标题”,
+        filename: “./index.html”
+    })
+]
+```</p>
+
+<h2 id="loader">Loader</h2>
+
+<p>在 webpack 中，一切都是模块，比如可以在 js 中引入 css 文件，图片文件</p>
+
+<h3 id="css-loader">css-loader</h3>
+
+<p>想要引入 css 文件，需要安装下面的模块</p>
+
+<p><code class="highlighter-rouge">
+npm install style-loader -D
+npm install css-loader -D
+</code></p>
+
+<p>在<code class="highlighter-rouge">webpack.dev.js</code>添加 module 的配置</p>
+
+<p><code class="highlighter-rouge">
+// 在module.exports添加下面的节点
+module: {
+    rules: [
+        {
+            test: /\.css$/,
+            use: ['style-loader', 'css-loader'] //顺序不要写反
+        }
+    ]
+}
+</code></p>
+
+<p><img src="css-loader-01.png" alt="css-loader-01" /></p>
+
+<p><code class="highlighter-rouge">npm start</code> 启动起来,最终会使用 js 在 dom 中插入 style 节点</p>
+
+<p><img src="css-loader-02.png" alt="css-loader-02" /></p>
+
+<h3 id="file-loader">file-loader</h3>
+
+<p>上面说过了，在 webpack 中，一切都是模块，对于那些不需要特殊处理的文件，直接使用 file-loader 就行了</p>
+
+<p>对于一些静态文件，比如说图片和字体文件，这些是无法打包进 js 文件中的，严格的说图片文件是可以的，一般有些项目会对小图片会进行 base64 编码成字符串打进去，不过我然觉这类文件还是分开为好</p>
+
+<p><code class="highlighter-rouge">
+npm install file-loader -D
+</code></p>
+
+<p>在<code class="highlighter-rouge">webpack.dev.js</code>添加 module 的配置</p>
+
+<p><code class="highlighter-rouge">
+// 在module.exports添加下面的节点
+module: {
+    rules: [
+        {
+            test: /\.(gif|jpg|png|woff|svg|eot|ttf)\??.*$/,
+            loader: 'file-loader',
+            options: {
+                // 生成到dist/static下
+                name: 'static/[name]-[hash].[ext]'
+            }
+        }
+    ]
+}
+</code></p>
+
+<p>注意：对于 vue 文件，是可以直接写 html 的，直接在 img 标签内引入 img 是不行的，必须要先导入，不然这个图片是不会被作为依赖，最终放到 dist 目录的，或者使用<code class="highlighter-rouge">&lt;img src={require('../static/img/logo.png')} /&gt;</code></p>
+
+<p>```
+import LogoImg from ‘./../static/img/logo.png’
+const Logo2Img = require(‘./../static/img/logo.png’)</p>
+
+<p>// 类似于 static/logo-b15c113aeddbeb606d938010b88cf8e6.png
+console.log(LogoImg)
+console.log(Logo2Img)
+```</p>
+
+<h3 id="babel-loader">babel-loader</h3>
+
+<p>有时候写代码的时候用到了 es6 的一些语法，由于生产的客户端情况复杂，不能保证所有设备的浏览器都支持 es6 语法</p>
+
+<p>babel-loader 的作用就是把你的部分代码降级，以此来兼容更多的设备，同时开发很能使用最新的语法糖</p>
+
+<p><code class="highlighter-rouge">
+npm install babel-core -D
+npm install babel-loader -D
+npm install babel-preset-env -D
+</code></p>
+
+<p>在<code class="highlighter-rouge">webpack.dev.js</code>添加 module 的配置</p>
+
+<p><code class="highlighter-rouge">
+// 在module.exports添加下面的节点
+module: {
+    rules: [
+        {
+            test: /\.js$/,
+            exclude: '/node_modules/',
+            loader: 'babel-loader'
+        }
+    ]
+}
+</code></p>
+
+<p>在 package.json 配置 babel 规则,下面配置即实现对 ES2015+语法进行转码</p>
+
+<p><code class="highlighter-rouge">
+"babel": {
+    "presets": [
+        "env"
+    ]
+}
+</code></p>
+
+<h2 id="section-3">多环境打包</h2>
+
+<p>一般在开发时候，开发和生产的打包的配置肯定是不同的</p>
+
+<p>那么 webpack 配置文件存在多份是必然的，当然了也可以在命令中传入参数来判断是否是开发生产</p>
+
+<p>但是我的习惯是生产开发各一个配置文件，但是对与公用的配置文件要写两次的话很啰嗦，而且修改下也要改两次</p>
+
+<p>这里推荐<code class="highlighter-rouge">webpack-merge</code>当我写好了公用配置</p>
+
+<p>那么在我的开发配置里面可以这么写，本地开发不进行 babel 转码，热部署比较快</p>
+
+<p>```
+const path = require(‘path’)
+const baseWebpackConfig = require(‘./webpack.basic.js’)
+const merge = require(‘webpack-merge’)</p>
+
+<p>const devConfig = merge(baseWebpackConfig, {
+    mode: ‘development’,
+    devServer: {
+        //默认根目录是在webpack.config同一级的目录下
+        contentBase: path.join(__dirname, ‘../dist’),
+        port: 8888,
+        host: ‘127.0.0.1’,
+        compress: false, // gzip传输
+        open: true // 自动打开浏览器
+    }
+})</p>
+
+<p>module.exports = devConfig
+```</p>
+
+<p>生产这么写</p>
+
+<p>```
+const baseWebpackConfig = require(‘./webpack.basic.js’)
+const merge = require(‘webpack-merge’)</p>
+
+<p>const buildConfig = merge(baseWebpackConfig, {
+    mode: ‘production’,
+    module: {
+        rules: [
+            {
+                test: /.js$/,
+                exclude: ‘/node_modules/’,
+                loader: ‘babel-loader’
+            }
+        ]
+    }
+})</p>
+
+<p>module.exports = buildConfig
+```</p>
+
+<h2 id="section-4">实战</h2>
+
+<p>使用 Vue 框架和 iView 框架</p>
+
+<p>本文章上面的都要安装，同时还要安装下面的依赖，还要注意的是 Vue 挂在在<code class="highlighter-rouge">&lt;div id='app'&gt;</code>上，html-webpack-plugin 自动生成的 html 就不行了，需要新建一个模板文件</p>
+
+<p><code class="highlighter-rouge">
+npm install vue -S // 代码依赖
+npm install vue-loader -D // 开发依赖
+npm install vue-template-compiler -D // 开发依赖
+npm install iview -S // 代码依赖
+npm install iview-loader -D // 开发依赖
+</code></p>
+
+<p><img src="demo-code.png" alt="demo-code" /></p>
+
+<p><img src="demo-show.png" alt="demo-show" /></p>
+
+<p><img src="demo-webpack-config.png" alt="demo-webpack-config" /></p>
+</div>
+	</div>
+<footer class="footer">
+    <span>Copyright © 2016 皖ICP备16016174号</span>
+    <a href="/sitemap.xml">网站地图</a>
+    <span>Powered by</span>
+    <a href="https://github.com/TMaize/tmaize-blog">tmaize-blog</a>
+    <div class="up"></div>
+</footer>
+<script>
+    //mta.qq.com 访问统计
+    var _mtac = {};
+    (function() {
+        var mta = document.createElement("script");
+        mta.src = "http://pingjs.qq.com/h5/stats.js?v2.0.2";
+        mta.setAttribute("name", "MTAH5");
+        mta.setAttribute("sid", "500581966");
+        var s = document.getElementsByTagName("script")[0];
+        s.parentNode.insertBefore(mta, s);
+    })();
+    //360的自动推送
+    (function(){
+        var src = (document.location.protocol == "http:") ? "http://js.passport.qihucdn.com/11.0.1.js?0b7f3f19682121293c3e4b62c9740281":"https://jspassport.ssl.qhimg.com/11.0.1.js?0b7f3f19682121293c3e4b62c9740281";
+        document.write('<script src="' + src + '" id="sozz"><\/script>');
+    })();
+    //百度的自动推送
+    (function(){
+        var bp = document.createElement('script');
+        var curProtocol = window.location.protocol.split(':')[0];
+        if (curProtocol === 'https') {
+            bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';
+        }
+        else {
+            bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+        }
+        var s = document.getElementsByTagName("script")[0];
+        s.parentNode.insertBefore(bp, s);
+    })();
+</script>
+</body>
+</html>

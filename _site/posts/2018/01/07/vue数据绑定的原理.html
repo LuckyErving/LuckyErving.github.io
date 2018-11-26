@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+		<meta http-equiv="content-language" content="zh-CN" />
+		<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+		<meta name="keywords" content="TMaize,javascript"/>
+		<meta name="author" content="TMaize" />
+		<meta name="description" content="Vue数据绑定的原理"/>
+		<link rel="icon" href="/static/img/favicon.ico" type="image/x-icon" />
+		<link rel="shortcut icon" href="/static/img/favicon.ico" type="image/x-icon"/>
+		<link rel="stylesheet" href="/static/css/blog.css">
+		<link rel="stylesheet" href="/static/css/blog-post.css">
+		<script>window.blog={contextPath:""}</script>
+		<script type="text/javascript" src="/static/js/blog.js"></script>
+		<title>Vue数据绑定的原理-TMaize Blog</title>
+	</head>
+<body>
+<header class="header select-none">
+    <a class="logo" title="TMaize Blog" href="/">
+        <img src="/static/img/logo.jpg">
+    </a>
+    <a class="title" href="/">TMaize Blog</a>
+    <nav class="menu">
+        <a href="/">Blog</a>
+        <a href="/pages/categories.html">Categories</a>
+        <a href="/pages/search.html">Search</a>
+        <a href="/pages/links.html">Links</a>
+        <a href="/pages/chat.html">Chat</a>
+        <a href="/pages/about.html">About</a>
+    </nav>
+    <span class="icon"></span>
+</header>
+	<div class="main animation-fadeUp post">
+		
+		<h1 class="title">Vue数据绑定的原理</h1>
+		
+		<div class="content"><h2 id="section">原理</h2>
+
+<p>其实原理很简单，就是拦截了Object的get/set方法，在对数据进行set<code class="highlighter-rouge">(obj.aget=18)</code>时去重现渲染视图</p>
+
+<p>实现方式有两种</p>
+
+<ul>
+  <li>
+    <p>方式1</p>
+
+    <p>定义了同名的get/set就相当于定义了age</p>
+
+    <p><code class="highlighter-rouge">
+  var test = {
+      _age: 18,
+      get age() {
+          console.log('触发get');
+          //直接会this.age会进入死递归的
+          return this._age;
+      },
+      set age(age) {
+          console.log('触发set');
+          this._age = age;
+      }
+  };
+ </code></p>
+
+    <p>为了让test不显示多余的变量，可以把_age定义在外部</p>
+
+    <p><code class="highlighter-rouge">
+  var _age = 18;
+  var test = {
+      get age() {
+          console.log('触发get');
+          //直接会this.age会进入死递归的
+          return _age;
+      },
+      set age(age) {
+          console.log('触发set');
+          _age = age;
+      }
+  };
+ </code></p>
+  </li>
+  <li>
+    <p>方式2</p>
+
+    <p>使用这种方式完美的解决了对象内包含多余的变量的问题</p>
+
+    <p><code class="highlighter-rouge">
+  function test() {
+      var _age = 18;
+      Object.defineProperty(this, "age", {
+          get: function () {
+              console.log('触发get');
+              return _age;
+          },
+          set: function (value) {
+              console.log('触发set')
+              _age = value;
+          }
+      });
+  }
+  var t = new test();
+  t.age=18;
+ </code></p>
+  </li>
+</ul>
+
+<h2 id="section-1">实现数据到视图的绑定</h2>
+
+<p>这里的渲染只是一个简单的正则替换</p>
+
+<p>要实现Vue那么强大的功能还要自己实现一个模板引擎</p>
+
+<p><img src="01.gif" alt="01" /></p>
+
+<p>```</p>
+<div id="test">
+    <p>name:</p>
+    <p>age:</p>
+</div>
+<p>```</p>
+
+<p>```
+function Element(id, initData) {
+    var self = this;
+    var el = document.getElementById(id);
+    var templet = el.innerHTML;
+    var _data = null;</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>if (initData) {
+    _data = {};
+    for (var variable in initData) {
+        _data[variable] = initData[variable];
+        bind(variable, self);
+    }
+}
+
+function bind(variable, obj) {
+    Object.defineProperty(self, variable, {
+        set: function (value) {
+            //使用_data里的数据，避免死递归
+            _data[variable] = value;
+            //每次被设置新值的时候重新渲染界面
+            render();
+        },
+        get: function () {
+            return _data[variable];
+        },
+    });
+}
+
+//渲染
+function render() {
+    var temp = templet;
+    temp = temp.replace(/\{\{(.*)\}\}/g, function (s, t) {
+        if (_data[t]) {
+            return _data[t];
+        }
+    });
+    el.innerHTML = temp;
+}
+
+//初始化时候手动渲染一次
+render(); }
+</code></pre>
+</div>
+
+<p>var app = new Element(‘test’, {
+    name: ‘zhangsan’,
+    age: 18
+})
+```</p>
+
+<h2 id="section-2">实现视图到数据的绑定</h2>
+
+<p>这里做一个简单的input改变的事件监听</p>
+
+<p>每次渲染之后都要重新添加事件，用时间委托可以实现,但是input的focus位置不能保留</p>
+
+<p>可见Vue内部的渲染和事件绑定肯定不是像这里demo写的那么简单，这里只是大致的原理(可能并不是这样的。。。)</p>
+
+<p><img src="02.gif" alt="" /></p>
+
+<p>```</p>
+<div id="test">
+    <input type="text" value="" />
+    <br />
+    <span></span>
+</div>
+<p>```</p>
+
+<p>```
+function Element(id, initData) {
+    var self = this;
+    var el = document.getElementById(id);
+    var templet = el.innerHTML;
+    var input = el.getElementsByTagName(‘input’)[0];
+    var _data = initData;</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>Object.defineProperty(self, 'data', {
+    set: function (value) {
+        _data = value;
+        render();
+    },
+    get: function () {
+        return _data;
+    },
+});
+
+//渲染
+function render() {
+    var temp = templet;
+    temp = temp.replace(/\{\{(data)\}\}/g, function (s, t) {
+        return _data;
+    });
+    el.innerHTML = temp;
+
+    //重新添加事件，其实应该用事件委托的
+    input = el.getElementsByTagName('input')[0];
+    inputchange();
+    input.focus();
+}
+
+function inputchange() {
+    if (window.attachEvent) {
+        input.attachEvent("oninput", temp);
+    } else if (window.addEventListener) {
+        input.addEventListener("input", temp, false);
+    }
+
+    function temp() {
+        self.data = input.value;
+    }
+}
+
+//初始化时候手动渲染一次
+render(); } var app = new Element('test', ''); ```
+</code></pre>
+</div>
+</div>
+	</div>
+<footer class="footer">
+    <span>Copyright © 2016 皖ICP备16016174号</span>
+    <a href="/sitemap.xml">网站地图</a>
+    <span>Powered by</span>
+    <a href="https://github.com/TMaize/tmaize-blog">tmaize-blog</a>
+    <div class="up"></div>
+</footer>
+<script>
+    //mta.qq.com 访问统计
+    var _mtac = {};
+    (function() {
+        var mta = document.createElement("script");
+        mta.src = "http://pingjs.qq.com/h5/stats.js?v2.0.2";
+        mta.setAttribute("name", "MTAH5");
+        mta.setAttribute("sid", "500581966");
+        var s = document.getElementsByTagName("script")[0];
+        s.parentNode.insertBefore(mta, s);
+    })();
+    //360的自动推送
+    (function(){
+        var src = (document.location.protocol == "http:") ? "http://js.passport.qihucdn.com/11.0.1.js?0b7f3f19682121293c3e4b62c9740281":"https://jspassport.ssl.qhimg.com/11.0.1.js?0b7f3f19682121293c3e4b62c9740281";
+        document.write('<script src="' + src + '" id="sozz"><\/script>');
+    })();
+    //百度的自动推送
+    (function(){
+        var bp = document.createElement('script');
+        var curProtocol = window.location.protocol.split(':')[0];
+        if (curProtocol === 'https') {
+            bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';
+        }
+        else {
+            bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+        }
+        var s = document.getElementsByTagName("script")[0];
+        s.parentNode.insertBefore(bp, s);
+    })();
+</script>
+</body>
+</html>

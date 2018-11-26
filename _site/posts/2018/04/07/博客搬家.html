@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+		<meta http-equiv="content-language" content="zh-CN" />
+		<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+		<meta name="keywords" content="TMaize,小技巧"/>
+		<meta name="author" content="TMaize" />
+		<meta name="description" content="博客搬家"/>
+		<link rel="icon" href="/static/img/favicon.ico" type="image/x-icon" />
+		<link rel="shortcut icon" href="/static/img/favicon.ico" type="image/x-icon"/>
+		<link rel="stylesheet" href="/static/css/blog.css">
+		<link rel="stylesheet" href="/static/css/blog-post.css">
+		<script>window.blog={contextPath:""}</script>
+		<script type="text/javascript" src="/static/js/blog.js"></script>
+		<title>博客搬家-TMaize Blog</title>
+	</head>
+<body>
+<header class="header select-none">
+    <a class="logo" title="TMaize Blog" href="/">
+        <img src="/static/img/logo.jpg">
+    </a>
+    <a class="title" href="/">TMaize Blog</a>
+    <nav class="menu">
+        <a href="/">Blog</a>
+        <a href="/pages/categories.html">Categories</a>
+        <a href="/pages/search.html">Search</a>
+        <a href="/pages/links.html">Links</a>
+        <a href="/pages/chat.html">Chat</a>
+        <a href="/pages/about.html">About</a>
+    </nav>
+    <span class="icon"></span>
+</header>
+	<div class="main animation-fadeUp post">
+		
+		<h1 class="title">博客搬家</h1>
+		
+		<div class="content"><p>折腾了几天site-generator也写完了，把旧主题重新用Freemark写了下，现在把生成的静态文件部署到了百度的BAE</p>
+
+<p>把域名国内的线路CNAME解析到的百度的BAE</p>
+
+<p>国外的线路CNAME解析到的Github Pages</p>
+
+<p>可以说是无缝切换了，唯一的就区别如下:</p>
+
+<p>使用国外ip访问博客底部信息如下</p>
+
+<p><img src="out_1.png" alt="out_1.png" /></p>
+
+<p>使用国内ip访问博客底部信息如下</p>
+
+<p><img src="out_2.png" alt="out_2.png" /></p>
+
+<h2 id="section">文章的管理不变</h2>
+
+<p>文章的管理还是不变，全部托管在Github，在里面添加了一个site-generator的主题目录，文章资源都是引用之前的（site-generator这一点设计的还是不错的），同时把site-generator生成的静态文件放到.gitignore里面</p>
+
+<p>同时在输出静态文件的目录再建一个BAE的git项目。BAE的也是通过git发布也是很方便的，每次都不要上传所有文件了</p>
+
+<p>现在添加文章只需要先push到Github，然后运行下site-generator的生成脚本，再到生成目录push到BAE就OK了</p>
+
+<p><img src="tree.png" alt="tree.png" /></p>
+
+<h2 id="section-1">爬虫生效了</h2>
+
+<p>github pages对百度的爬虫很不友好，几乎是无法收录</p>
+
+<p>现在国内博客的托管在BAE也终于能被爬虫抓到了</p>
+
+<p><img src="spider_1.png" alt="spider_1.png" /></p>
+
+<p><img src="spider_2.png" alt="spider_2.png" /></p>
+
+<h2 id="section-2">访问速度更快了</h2>
+
+<p><img src="ping_1.png" alt="ping_1.png" /></p>
+
+<p><img src="ping_2.png" alt="ping_2.png" /></p>
+</div>
+	</div>
+<footer class="footer">
+    <span>Copyright © 2016 皖ICP备16016174号</span>
+    <a href="/sitemap.xml">网站地图</a>
+    <span>Powered by</span>
+    <a href="https://github.com/TMaize/tmaize-blog">tmaize-blog</a>
+    <div class="up"></div>
+</footer>
+<script>
+    //mta.qq.com 访问统计
+    var _mtac = {};
+    (function() {
+        var mta = document.createElement("script");
+        mta.src = "http://pingjs.qq.com/h5/stats.js?v2.0.2";
+        mta.setAttribute("name", "MTAH5");
+        mta.setAttribute("sid", "500581966");
+        var s = document.getElementsByTagName("script")[0];
+        s.parentNode.insertBefore(mta, s);
+    })();
+    //360的自动推送
+    (function(){
+        var src = (document.location.protocol == "http:") ? "http://js.passport.qihucdn.com/11.0.1.js?0b7f3f19682121293c3e4b62c9740281":"https://jspassport.ssl.qhimg.com/11.0.1.js?0b7f3f19682121293c3e4b62c9740281";
+        document.write('<script src="' + src + '" id="sozz"><\/script>');
+    })();
+    //百度的自动推送
+    (function(){
+        var bp = document.createElement('script');
+        var curProtocol = window.location.protocol.split(':')[0];
+        if (curProtocol === 'https') {
+            bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';
+        }
+        else {
+            bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+        }
+        var s = document.getElementsByTagName("script")[0];
+        s.parentNode.insertBefore(bp, s);
+    })();
+</script>
+</body>
+</html>

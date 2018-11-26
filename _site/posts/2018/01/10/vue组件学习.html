@@ -1,0 +1,503 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+		<meta http-equiv="content-language" content="zh-CN" />
+		<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+		<meta name="keywords" content="TMaize,javascript"/>
+		<meta name="author" content="TMaize" />
+		<meta name="description" content="Vue组件学习"/>
+		<link rel="icon" href="/static/img/favicon.ico" type="image/x-icon" />
+		<link rel="shortcut icon" href="/static/img/favicon.ico" type="image/x-icon"/>
+		<link rel="stylesheet" href="/static/css/blog.css">
+		<link rel="stylesheet" href="/static/css/blog-post.css">
+		<script>window.blog={contextPath:""}</script>
+		<script type="text/javascript" src="/static/js/blog.js"></script>
+		<title>Vue组件学习-TMaize Blog</title>
+	</head>
+<body>
+<header class="header select-none">
+    <a class="logo" title="TMaize Blog" href="/">
+        <img src="/static/img/logo.jpg">
+    </a>
+    <a class="title" href="/">TMaize Blog</a>
+    <nav class="menu">
+        <a href="/">Blog</a>
+        <a href="/pages/categories.html">Categories</a>
+        <a href="/pages/search.html">Search</a>
+        <a href="/pages/links.html">Links</a>
+        <a href="/pages/chat.html">Chat</a>
+        <a href="/pages/about.html">About</a>
+    </nav>
+    <span class="icon"></span>
+</header>
+	<div class="main animation-fadeUp post">
+		
+		<h1 class="title">Vue组件学习</h1>
+		
+		<div class="content"><h2 id="section">全局组件</h2>
+
+<p>所有的vue实例里面都可以使用</p>
+
+<p><strong>注意：</strong> 2.0之后template最外层只有一个结点</p>
+
+<blockquote>
+  <p>Component template should contain exactly one root element. If you are using v-if on multiple elements, use v-else-if to chain them instead</p>
+</blockquote>
+
+<p><strong>注意：</strong> data必须是函数</p>
+
+<p><code class="highlighter-rouge">
+正确
+template="&lt;div&gt;&lt;div&gt;&lt;/div&gt;&lt;div&gt;&lt;/div&gt;&lt;/div&gt;"
+错误(2.0之前也可以)
+template="&lt;div&gt;&lt;/div&gt;&lt;div&gt;&lt;/div&gt;"
+</code></p>
+
+<p>组件写法1</p>
+
+<p><code class="highlighter-rouge">
+Vue.component('my-component', {
+    template: '&lt;div @click="num++"&gt;&lt;/div&gt;',
+    data() {
+        return {
+            num: 0
+        }
+    }
+});
+</code></p>
+
+<p>组件写法2</p>
+
+<p>```
+var myComponent = Vue.extend({
+    template: ‘&lt;div @click=”num++”&gt;&lt;/div&gt;’,
+    data() {
+        return {
+            num: 0
+        }
+    }
+});</p>
+
+<p>Vue.component(‘my-component’, myComponent);
+```</p>
+
+<h2 id="section-1">组件使用模版</h2>
+
+<p>在组件里面用<code class="highlighter-rouge">template: '&lt;div @click="num++"&gt;&lt;/div&gt;'</code>是不利于书写的</p>
+
+<p>方式1</p>
+
+<p>```
+<script type="x-template" id="myComponent">
+    &lt;div @click="num++"&gt;&lt;/div&gt;
+</script></p>
+
+<p>template: ‘#myComponent’
+```</p>
+
+<p>方式2</p>
+
+<p>```</p>
+<template id="myComponent">
+    &lt;div @click="num++"&gt;
+</template>
+
+<p>template: ‘#myComponent’
+```</p>
+
+<h2 id="section-2">动态组件</h2>
+
+<p>```</p>
+<div id="app">
+    &lt;input type="button" @click="cpName='my-component-1'" value="使用my-component-1渲染"&gt;
+    &lt;input type="button" @click="cpName='my-component-2'" value="使用my-component-2渲染"&gt;
+    <component :is="cpName"></component>
+</div>
+
+<script>
+    Vue.component('my-component-1', {
+        template: '<div>我是组件1</div>'
+    });
+    Vue.component('my-component-2', {
+        template: '<div>我是组件2</div>'
+    });
+    var vm = new Vue({
+        el: '#app',
+        data: {
+            cpName: 'my-component-1'
+        }
+    });
+</script>
+
+<p>```
+注意，组件切换是是重新渲染，数据不会保留</p>
+
+<p>如果希望保留数据,可以使用keep-alive</p>
+
+<p>```</p>
+<keep-alive>
+    <component :is="currentView">
+    <!-- 非活动组件将被缓存！ -->
+    </component>
+</keep-alive>
+<p>```</p>
+
+<h2 id="section-3">父子组件</h2>
+
+<p>注意子组件必须在父组件的模板中使用而不是嵌套</p>
+
+<p>```
+错误写法</p>
+<father><son></son></father>
+<p>正确写法</p>
+
+<p>父组件的模板</p>
+<div>
+...
+<son></son>
+</div>
+<p>```</p>
+
+<p>```</p>
+<div id="app">
+    <father></father>
+</div>
+
+<script>
+    Vue.component('father', {
+        template: '<div>我是父组件<son></son></div>',
+        components: {
+            'son': {
+                template: '<div>我是子组件</div>'
+            }
+        }
+    });
+
+    var vm = new Vue({
+        el: '#app'
+    });
+</script>
+
+<p>```</p>
+
+<h2 id="section-4">父子组建通信</h2>
+
+<p>组件实例的作用域是孤立的。这意味着不能 (也不应该) 在子组件的模板内直接引用父组件的数据。父组件的数据需要通过 prop 才能下发到子组件中</p>
+
+<p>点击父组件，子组件绑定了父组件的数据也会随之改变</p>
+
+<p>但是点击子组件，子组件改变，父组件不改变，点击一下父组件，子组件会和父组件同步。这样试图用子组件来改变父组件的数据是不行的，子组件的数据虽然变化了，但是会被父组件的变化给覆盖，而且控制台还会有警告子组件的值有会被覆盖的风险</p>
+
+<p><img src="01.png" alt="01.png" /></p>
+
+<p><code class="highlighter-rouge">
+Vue.component('father', {
+    data: function () {
+        return {
+            fNum: 1
+        }
+    },
+    template: '&lt;div&gt;&lt;div @click="fNum++"&gt;我是父组件&lt;/div&gt;&lt;son :sNum="fNum"&gt;&lt;/son&gt;&lt;/div&gt;',
+    components: {
+        'son': {
+            props: ['sNum'],
+            template: '&lt;div @click="sNum++"&gt;我是子组件&lt;/div&gt;',
+        }
+    }
+});
+</code></p>
+
+<p>有时候，子组件只是需要父组件给他一个初始值，不想让父组件来改变他,可以定义一个局部变量，并用 prop 的值初始化它</p>
+
+<p>或者需要数据进行处理，然后跟随父组件变化，可以使用计算属性</p>
+
+<p><code class="highlighter-rouge">
+Vue.component('father', {
+    data: function () {
+        return {
+            fNum: 1
+        }
+    },
+    template: '&lt;div&gt;&lt;div @click="fNum++"&gt;我是父组件&lt;/div&gt;&lt;son :sNum="fNum"&gt;&lt;/son&gt;&lt;/div&gt;',
+    components: {
+        'son': {
+            props: ['sNum'],
+            data() {
+                return {
+                    sNumCopy: this.sNum
+                }
+            },
+            computed: {
+                fNumM2() {
+                    return this.sNum * 2;
+                }
+            },
+            template: '&lt;div @click="sNumCopy++"&gt;我是子组件，&lt;/div&gt;',
+        }
+    }
+});
+</code></p>
+
+<h2 id="prop">prop数据的绑定和固定数据</h2>
+
+<p>```</p>
+<son :snum="fNum" snum2="fNum"></son>
+<p>props: [‘sNum’,sNum2]</p>
+
+<p>sNum是父组件数据的绑定</p>
+
+<p>sNum2只是获得了一个字符传，里面的东西统统都是字符串，而不是表达式，可以理解为组件的静态属性吧
+```</p>
+
+<p>上面说到子组件无法直接改变父组件的值，有时候又确实要改变的可以使用emit来通知父组件自己改变了，同时传递给父组件自己改变后的值，然后父组件可以接受这个值，然后进行改变</p>
+
+<blockquote>
+  <p>子组件已经和它外部完全解耦了。它所做的只是报告自己的内部事件，因为父组件可能会关心这些事件</p>
+</blockquote>
+
+<p><code class="highlighter-rouge">
+Vue.component('father', {
+    data: function () {
+        return {
+            fNum: 1
+        }
+    },
+    methods: {
+        fFunc(a) {
+            this.fNum = a;
+        }
+    },
+    template: '&lt;div&gt;&lt;div @click="fNum++"&gt;我是父组件&lt;/div&gt;&lt;son @notice="fFunc" :sNum="fNum"&gt;&lt;/son&gt;&lt;/div&gt;',
+    components: {
+        'son': {
+            props: ['sNum'],
+            data() {
+                return {
+                    sNumCopy: this.sNum
+                }
+            },
+            template: '&lt;div @click="sClick"&gt;我是子组件&lt;/div&gt;',
+            methods: {
+                sClick() {
+                    this.sNumCopy++;
+                    this.$emit('notice', this.sNumCopy);
+                }
+            },
+        }
+    }
+});
+</code></p>
+
+<h2 id="sync">sync语法糖</h2>
+
+<p>有时候只是简单的实现下数据同步，并不对数据做处理，而父组件还要为了这个么简单的一个功能写一个函数来处理，实在是太麻烦</p>
+
+<p>其实是有sync这个语法糖的，同时很直观的能看到这个数据是双向绑定的</p>
+
+<p>```</p>
+<comp :foo.sync="bar"></comp>
+<p>会被vue自动扩展为
+&lt;comp :foo=”bar” @update:foo=”val =&gt; bar = val”&gt;&lt;/comp&gt;
+当子组件需要更新 foo 的值时，它需要显式地触发一个更新事件
+this.$emit(‘update:foo’, newValue)
+```</p>
+
+<p>案例如下</p>
+
+<p><code class="highlighter-rouge">
+Vue.component('father', {
+    data: function () {
+        return {
+            fNum: 1
+        }
+    },
+    template: '&lt;div&gt;&lt;div @click="fNum++"&gt;我是父组件&lt;/div&gt;&lt;son :sNum.sync="fNum"&gt;&lt;/son&gt;&lt;/div&gt;',
+    components: {
+        'son': {
+            props: ['sNum'],
+            template: '&lt;div @click="sUpdate"&gt;我是子组件&lt;/div&gt;',
+            methods: {
+                sUpdate() {
+                    this.sNum++;
+                    this.$emit('update:sNum', this.sNum)
+                }
+            }
+        }
+    }
+});
+</code></p>
+
+<h2 id="section-5">不同组件之间通信</h2>
+
+<p>不同组件之间的数据共享还好办，data返回同一个Object就行了</p>
+
+<p>之间通信的话就需要借助一个中间人，</p>
+
+<p>```</p>
+<div id="app">
+    <comp1></comp1>
+    <comp2></comp2>
+</div>
+
+<script>
+    var hub = new Vue(); //创建事件中心
+
+    Vue.component('comp1', {
+        data() {
+            return {
+                num: 1
+            }
+        },
+        methods: {
+            comp2Change() {
+                hub.$emit('comp2Change');
+            }
+        },
+        mounted: function () {
+            hub.$on('comp1Change', function () {
+                this.num++;
+            }.bind(this))
+        },
+        template: '<div @click="comp2Change"></div>'
+    });
+    Vue.component('comp2', {
+        data() {
+            return {
+                num: 1
+            }
+        },
+        methods: {
+            comp1Change() {
+                hub.$emit('comp1Change');
+            }
+        },
+        mounted: function () {
+            hub.$on('comp1Change', function () {
+                this.num++;
+            }.bind(this))
+        },
+        mounted: function () {
+            hub.$on('comp2Change', function () {
+                this.num++;
+            }.bind(this))
+        },
+        template: '<div @click="comp1Change"></div>'
+    });
+    var vm = new Vue({
+        el: '#app'
+    });
+</script>
+
+<p>```</p>
+
+<h2 id="section-6">插槽</h2>
+
+<p>引用组件时候，在组件标签内写的内容是会被覆盖的，即无效</p>
+
+<p>```</p>
+<div id="app">
+    <comp>
+        <span>World</span>
+    </comp>
+</div>
+
+<script>
+    Vue.component('comp', {
+        template: '<div>Hello</div>'
+    });
+    var vm = new Vue({
+        el: '#app'
+    });
+</script>
+
+<p>```</p>
+
+<p>可以通过slot来将标签内的内容传递到组件模板中</p>
+
+<p>```</p>
+<div id="app">
+    <comp>
+        <span>World</span>
+    </comp>
+</div>
+
+<script>
+    Vue.component('comp', {
+        template: '<div>Hello<slot></slot></div>'
+    });
+    var vm = new Vue({
+        el: '#app'
+    });
+</script>
+
+<p>```</p>
+
+<p>当然，把标签内的作为一个整体作为一个slot还是不太自由,可以为slot起名字，根据名字引用</p>
+
+<p>直接slot代表的是所有没有名字的slot</p>
+
+<p>```</p>
+<div id="app">
+    <comp>
+        <span slot="s1">World</span>
+        <span slot="s2">!!!</span>
+    </comp>
+</div>
+
+<script>
+    Vue.component('comp', {
+        data() {
+            return {
+                name: " Ming"
+            }
+        },
+        template: '<div>Hello<slot name="s2"></slot><slot name="s1"></slot></div>'
+    });
+    var vm = new Vue({
+        el: '#app'
+    });
+</script>
+
+<p>```</p>
+</div>
+	</div>
+<footer class="footer">
+    <span>Copyright © 2016 皖ICP备16016174号</span>
+    <a href="/sitemap.xml">网站地图</a>
+    <span>Powered by</span>
+    <a href="https://github.com/TMaize/tmaize-blog">tmaize-blog</a>
+    <div class="up"></div>
+</footer>
+<script>
+    //mta.qq.com 访问统计
+    var _mtac = {};
+    (function() {
+        var mta = document.createElement("script");
+        mta.src = "http://pingjs.qq.com/h5/stats.js?v2.0.2";
+        mta.setAttribute("name", "MTAH5");
+        mta.setAttribute("sid", "500581966");
+        var s = document.getElementsByTagName("script")[0];
+        s.parentNode.insertBefore(mta, s);
+    })();
+    //360的自动推送
+    (function(){
+        var src = (document.location.protocol == "http:") ? "http://js.passport.qihucdn.com/11.0.1.js?0b7f3f19682121293c3e4b62c9740281":"https://jspassport.ssl.qhimg.com/11.0.1.js?0b7f3f19682121293c3e4b62c9740281";
+        document.write('<script src="' + src + '" id="sozz"><\/script>');
+    })();
+    //百度的自动推送
+    (function(){
+        var bp = document.createElement('script');
+        var curProtocol = window.location.protocol.split(':')[0];
+        if (curProtocol === 'https') {
+            bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';
+        }
+        else {
+            bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+        }
+        var s = document.getElementsByTagName("script")[0];
+        s.parentNode.insertBefore(bp, s);
+    })();
+</script>
+</body>
+</html>

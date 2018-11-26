@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+		<meta http-equiv="content-language" content="zh-CN" />
+		<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+		<meta name="keywords" content="TMaize,java"/>
+		<meta name="author" content="TMaize" />
+		<meta name="description" content="Servlet3.0的AsyncContext"/>
+		<link rel="icon" href="/static/img/favicon.ico" type="image/x-icon" />
+		<link rel="shortcut icon" href="/static/img/favicon.ico" type="image/x-icon"/>
+		<link rel="stylesheet" href="/static/css/blog.css">
+		<link rel="stylesheet" href="/static/css/blog-post.css">
+		<script>window.blog={contextPath:""}</script>
+		<script type="text/javascript" src="/static/js/blog.js"></script>
+		<title>Servlet3.0的AsyncContext-TMaize Blog</title>
+	</head>
+<body>
+<header class="header select-none">
+    <a class="logo" title="TMaize Blog" href="/">
+        <img src="/static/img/logo.jpg">
+    </a>
+    <a class="title" href="/">TMaize Blog</a>
+    <nav class="menu">
+        <a href="/">Blog</a>
+        <a href="/pages/categories.html">Categories</a>
+        <a href="/pages/search.html">Search</a>
+        <a href="/pages/links.html">Links</a>
+        <a href="/pages/chat.html">Chat</a>
+        <a href="/pages/about.html">About</a>
+    </nav>
+    <span class="icon"></span>
+</header>
+	<div class="main animation-fadeUp post">
+		
+		<h1 class="title">Servlet3.0的AsyncContext</h1>
+		
+		<div class="content"><p>从Servlet3.0开始，Tomcat的Servlet支持异步请求，或者说是Tomcat提供了异步Servlet，从而可以将一些耗时的操作放到独立的线程中，在 操作完成后再返回数据，不阻塞请求的执行和返回 ，甚至可以基于此实现服务器推 的功能。</p>
+
+<h2 id="section">使用</h2>
+
+<ol>
+  <li>
+    <p>手动开启异步处理支持</p>
+
+    <p>```
+ 1.在web.xml配置</p>
+    <async-supported>true</async-supported>
+    <p>2.或者使用注解
+ @WebServlet(asyncSupported = true)
+ ```</p>
+
+    <p>注意如果有过滤器，那么过滤器也要开启异步</p>
+  </li>
+  <li>
+    <p>使用request获取异步Context对象</p>
+
+    <p><code class="highlighter-rouge">
+ AsyncContext ctx = req.startAsync(req, resp);
+ ctx.setTimeout(5000);
+ new Thread(new Executor(ctx)).start();
+</code></p>
+  </li>
+  <li>
+    <p>在独立线程处理业务</p>
+
+    <p>一般可以通过线程的构造方法把Context对象传递进来，调用getRequest，和getResponse方法来获取请求对象，complete来响应完成</p>
+
+    <p>需要注意的是，异步Servlet有对应的超时时间，如果在指定的时间内没有执行完操作，response依然会走原来Servlet的结束逻辑，后续的异步操作执行完再写回的时候，可能会遇到异常。</p>
+  </li>
+</ol>
+
+<h2 id="section-1">和线程的区别</h2>
+
+<p>对于一些比较耗时的操作，为了不阻塞输出会开一个线程，在线程里面处理耗时的操作</p>
+
+<p>但是AsyncContext实际上不是让你异步，而是让你同步输出(所以浏览器一直是处于加载状态直到线程结束)，但是解放服务器端的线程使用，使用AsyncContext的时候，对于浏览器来说，他们是同步在等待输出的，但是对于服务器端来说，处理此请求的线程并没有卡在那里等待，则是把当前的处理转为线程池处理了，关键就在于线程池，服务器端会起一个线程池去服务那些需要异步处理的请求，而如果你自己每次请求去起一个线程处理的话，这就有可能会耗大量的线程。</p>
+
+<h2 id="demo">Demo</h2>
+
+<p>比如这个例子，在控制台的输入会同步到浏览器，所以把处理时间加长一点就可以模拟推送了</p>
+
+<p>```java
+public class Service_1 extends HttpServlet{</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>private static final long serialVersionUID = 1L;
+
+@Override
+protected void service(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+
+	req.setCharacterEncoding("utf-8");
+	resp.setCharacterEncoding("utf-8");
+	resp.setContentType("text/html;charset=UTF-8");
+	PrintWriter out = resp.getWriter();
+	out.println("开始"+new Date().toString()+"&lt;br&gt;");
+	out.flush();
+	
+	AsyncContext ctx = req.startAsync(req, resp);
+	ctx.setTimeout(9999999);
+    		ctx.addListener(new AsyncListener() {
+		
+		@Override
+		public void onTimeout(AsyncEvent arg0) throws IOException {
+			// TODO Auto-generated method stub
+			
+		}
+		
+		@Override
+		public void onStartAsync(AsyncEvent arg0) throws IOException {
+			// TODO Auto-generated method stub
+			
+		}
+		
+		@Override
+		public void onError(AsyncEvent arg0) throws IOException {
+			// TODO Auto-generated method stub
+			
+		}
+		
+		@Override
+		public void onComplete(AsyncEvent arg0) throws IOException {
+			// TODO Auto-generated method stub
+		}
+	});
+	new Thread(new Executor(ctx)).start();
+
+	out.println("结束"+new Date().toString()+"&lt;br&gt;");
+	out.flush();
+	
+}
+
+
+public class Executor implements Runnable{
+
+	private AsyncContext ctx = null;
+	
+	public Executor() {
+		
+	}
+	
+	public Executor(AsyncContext ctx) {
+		
+		this.ctx = ctx;
+	}
+
+	@Override
+	public void run() {
+
+		try {
+			System.out.println("进入线程...");
+			Scanner in = new Scanner(System.in);
+			
+			while(true){
+				String  s = in.nextLine();
+				if (s.equals("q")) {
+					ctx.complete();
+				}
+				PrintWriter out = ctx.getResponse().getWriter();
+				out.println("消息"+s+"&lt;br&gt;");
+				out.flush();
+			}
+			
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
+	
+}
+</code></pre>
+</div>
+
+<p>}
+```</p>
+
+<h3 id="section-2">效果图</h3>
+
+<p><img src="01.jpg" alt="p1" /></p>
+</div>
+	</div>
+<footer class="footer">
+    <span>Copyright © 2016 皖ICP备16016174号</span>
+    <a href="/sitemap.xml">网站地图</a>
+    <span>Powered by</span>
+    <a href="https://github.com/TMaize/tmaize-blog">tmaize-blog</a>
+    <div class="up"></div>
+</footer>
+<script>
+    //mta.qq.com 访问统计
+    var _mtac = {};
+    (function() {
+        var mta = document.createElement("script");
+        mta.src = "http://pingjs.qq.com/h5/stats.js?v2.0.2";
+        mta.setAttribute("name", "MTAH5");
+        mta.setAttribute("sid", "500581966");
+        var s = document.getElementsByTagName("script")[0];
+        s.parentNode.insertBefore(mta, s);
+    })();
+    //360的自动推送
+    (function(){
+        var src = (document.location.protocol == "http:") ? "http://js.passport.qihucdn.com/11.0.1.js?0b7f3f19682121293c3e4b62c9740281":"https://jspassport.ssl.qhimg.com/11.0.1.js?0b7f3f19682121293c3e4b62c9740281";
+        document.write('<script src="' + src + '" id="sozz"><\/script>');
+    })();
+    //百度的自动推送
+    (function(){
+        var bp = document.createElement('script');
+        var curProtocol = window.location.protocol.split(':')[0];
+        if (curProtocol === 'https') {
+            bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';
+        }
+        else {
+            bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+        }
+        var s = document.getElementsByTagName("script")[0];
+        s.parentNode.insertBefore(bp, s);
+    })();
+</script>
+</body>
+</html>

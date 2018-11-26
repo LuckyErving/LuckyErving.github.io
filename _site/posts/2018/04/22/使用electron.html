@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+		<meta http-equiv="content-language" content="zh-CN" />
+		<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+		<meta name="keywords" content="TMaize,Nodejs"/>
+		<meta name="author" content="TMaize" />
+		<meta name="description" content="使用Electron"/>
+		<link rel="icon" href="/static/img/favicon.ico" type="image/x-icon" />
+		<link rel="shortcut icon" href="/static/img/favicon.ico" type="image/x-icon"/>
+		<link rel="stylesheet" href="/static/css/blog.css">
+		<link rel="stylesheet" href="/static/css/blog-post.css">
+		<script>window.blog={contextPath:""}</script>
+		<script type="text/javascript" src="/static/js/blog.js"></script>
+		<title>使用Electron-TMaize Blog</title>
+	</head>
+<body>
+<header class="header select-none">
+    <a class="logo" title="TMaize Blog" href="/">
+        <img src="/static/img/logo.jpg">
+    </a>
+    <a class="title" href="/">TMaize Blog</a>
+    <nav class="menu">
+        <a href="/">Blog</a>
+        <a href="/pages/categories.html">Categories</a>
+        <a href="/pages/search.html">Search</a>
+        <a href="/pages/links.html">Links</a>
+        <a href="/pages/chat.html">Chat</a>
+        <a href="/pages/about.html">About</a>
+    </nav>
+    <span class="icon"></span>
+</header>
+	<div class="main animation-fadeUp post">
+		
+		<h1 class="title">使用Electron</h1>
+		
+		<div class="content"><p>如果你可以建一个网站，你就可以建一个桌面应用程序</p>
+
+<p>Electron 是一个使用 JavaScript, HTML 和 CSS 等 Web 技术创建原生程序的框架，它负责比较难搞的部分，你只需把精力放在你的应用的核心上即可</p>
+
+<h2 id="section">安装</h2>
+
+<p>Electron是基于Nodejs的，Nodejs的安装就不说了</p>
+
+<p>```
+npm install -g electron</p>
+
+<h1 id="section-1">安装打包工具</h1>
+
+<p>npm install -g electron-packager</p>
+
+<p>```</p>
+
+<h2 id="section-2">基本使用</h2>
+
+<ol>
+  <li>
+    <p>创建package.json,没有模板的话可以使用<code class="highlighter-rouge">npm init</code></p>
+  </li>
+  <li>
+    <p>在package.json中main指定的js文件，也就是electron主进程进行初始化</p>
+  </li>
+  <li>
+    <p>看看api，主进程能使用那些，渲染进程能使用拿下，都有什么可以使用的属性，方法</p>
+  </li>
+  <li>
+    <p>由于使用Nodejs，一些模块会无法导出到windows，比如jQuery，使用Nodejs规范的require即可</p>
+  </li>
+  <li>
+    <p>打包的使用</p>
+
+    <p>如下命令会在./release下生成outDirName-win32-x64文件夹</p>
+
+    <p><code class="highlighter-rouge">
+ electron-packager . outDirName --out=release --platform=win32 --arch=x64 --version=1.0.0 --electron-version=1.8.4 --overwrite --prune=true --icon=./resource/glee.ico --ignore=temp/
+</code></p>
+  </li>
+  <li>
+    <p>了解以上基本就可以了</p>
+  </li>
+</ol>
+
+<h2 id="frame">隐藏Frame</h2>
+
+<p>关于外部窗口的隐藏有些要注意的地方</p>
+
+<ul>
+  <li>
+    <p>有Frame的时候</p>
+
+    <p>使用的是系统的Frame-&gt;webview</p>
+  </li>
+  <li>
+    <p>无Frame</p>
+
+    <p>默认会有一个白色的底层，如果设置了transparent: true就是透明了</p>
+
+    <p>注意当底层透明时，页面刷新时，直接看到桌面了，会闪烁影响体验</p>
+  </li>
+</ul>
+
+<h2 id="section-3">窗口通讯</h2>
+
+<p>electron中，从package.json的main载入的js文件就是主进程，由主进程load出来的页面就是渲染进程</p>
+
+<p>渲染进程可以有多个，主进程只有一个”main.js”</p>
+
+<p>主进程和渲染进程之间通信，可以使用ipcMain(主进程)和ipcRenderer(渲染进程)来通信，也可以使用remote模块来通信</p>
+
+<p>所以最常见的就是主进程做中转来实现多个窗口之间的通信</p>
+
+<h2 id="section-4">一个案例</h2>
+
+<p>demo地址 <a href="https://github.com/TMaize/electron-usage">TMaize/electron-usage</a></p>
+
+<p>```
+# 调试
+npm run start
+# 打包
+npm run package-win</p>
+
+<h1 id="requireipcrenderer">需要注意的是通过require来引入依赖，使用ipcRenderer来进行通讯</h1>
+<p>window.$ = window.jQuery = require(“./dist/jquery.min”);
+window.ipc = require(‘electron’).ipcRenderer;
+```</p>
+
+<p><img src="01.png" alt="01" /></p>
+</div>
+	</div>
+<footer class="footer">
+    <span>Copyright © 2016 皖ICP备16016174号</span>
+    <a href="/sitemap.xml">网站地图</a>
+    <span>Powered by</span>
+    <a href="https://github.com/TMaize/tmaize-blog">tmaize-blog</a>
+    <div class="up"></div>
+</footer>
+<script>
+    //mta.qq.com 访问统计
+    var _mtac = {};
+    (function() {
+        var mta = document.createElement("script");
+        mta.src = "http://pingjs.qq.com/h5/stats.js?v2.0.2";
+        mta.setAttribute("name", "MTAH5");
+        mta.setAttribute("sid", "500581966");
+        var s = document.getElementsByTagName("script")[0];
+        s.parentNode.insertBefore(mta, s);
+    })();
+    //360的自动推送
+    (function(){
+        var src = (document.location.protocol == "http:") ? "http://js.passport.qihucdn.com/11.0.1.js?0b7f3f19682121293c3e4b62c9740281":"https://jspassport.ssl.qhimg.com/11.0.1.js?0b7f3f19682121293c3e4b62c9740281";
+        document.write('<script src="' + src + '" id="sozz"><\/script>');
+    })();
+    //百度的自动推送
+    (function(){
+        var bp = document.createElement('script');
+        var curProtocol = window.location.protocol.split(':')[0];
+        if (curProtocol === 'https') {
+            bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';
+        }
+        else {
+            bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+        }
+        var s = document.getElementsByTagName("script")[0];
+        s.parentNode.insertBefore(bp, s);
+    })();
+</script>
+</body>
+</html>

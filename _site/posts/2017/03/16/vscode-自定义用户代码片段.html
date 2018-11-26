@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+		<meta http-equiv="content-language" content="zh-CN" />
+		<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+		<meta name="keywords" content="TMaize,小技巧"/>
+		<meta name="author" content="TMaize" />
+		<meta name="description" content="Visual Studio Code 自定义用户代码片段"/>
+		<link rel="icon" href="/static/img/favicon.ico" type="image/x-icon" />
+		<link rel="shortcut icon" href="/static/img/favicon.ico" type="image/x-icon"/>
+		<link rel="stylesheet" href="/static/css/blog.css">
+		<link rel="stylesheet" href="/static/css/blog-post.css">
+		<script>window.blog={contextPath:""}</script>
+		<script type="text/javascript" src="/static/js/blog.js"></script>
+		<title>Visual Studio Code 自定义用户代码片段-TMaize Blog</title>
+	</head>
+<body>
+<header class="header select-none">
+    <a class="logo" title="TMaize Blog" href="/">
+        <img src="/static/img/logo.jpg">
+    </a>
+    <a class="title" href="/">TMaize Blog</a>
+    <nav class="menu">
+        <a href="/">Blog</a>
+        <a href="/pages/categories.html">Categories</a>
+        <a href="/pages/search.html">Search</a>
+        <a href="/pages/links.html">Links</a>
+        <a href="/pages/chat.html">Chat</a>
+        <a href="/pages/about.html">About</a>
+    </nav>
+    <span class="icon"></span>
+</header>
+	<div class="main animation-fadeUp post">
+		
+		<h1 class="title">Visual Studio Code 自定义用户代码片段</h1>
+		
+		<div class="content"><p>Visual Studio Code不但跨平台，还有良好的扩展性。用户可以自定义代码块方便开发</p>
+
+<ol>
+  <li>
+    <p>快捷键F1 输入<code class="highlighter-rouge">Snippets</code>,选择打开用户代码段</p>
+  </li>
+  <li>
+    <p>选择一种语言，以html为例,显示如下</p>
+
+    <p><code class="highlighter-rouge">json
+ {
+ /*
+     // Example:
+     "Print to console": {
+         "prefix": "log",
+         "body": [
+             "console.log('$1');",
+             "$2"
+         ],
+         "description": "Log output to console"
+     }
+ */
+ }
+</code></p>
+  </li>
+  <li>
+    <p>语法介绍</p>
+
+    <p>prefix:这个参数是使用代码段的快捷入口,比如这里的log在使用时输入log会有智能感知.</p>
+
+    <p>body:这个是代码段的主体.需要设置的代码放在这里,字符串间换行的话使用\r\n换行符隔开.注意如果值里包含特殊字符需要进行转义.多行语句的以,隔开</p>
+
+    <p>$1:这个为光标的所在位置.</p>
+
+    <p>$2:使用这个参数后会光标的下一位置将会另起一行,按tab键可进行快速切换,还可以有$3,$4,$5…..</p>
+
+    <p>${id} 和 ${id:label} 和 ${1:label} 等代表同一个变量！</p>
+
+    <p>description:代码段描述,在使用智能感知时的描述</p>
+  </li>
+  <li>
+    <p>编辑保存</p>
+
+    <p><code class="highlighter-rouge">json
+ {
+     "Blank Html": {
+         "prefix": "init",
+         "body": [
+             "<span class="cp">&lt;!DOCTYPE html&gt;</span>",
+             "<span class="nt">&lt;html&gt;</span>",
+             "\t<span class="nt">&lt;head&gt;</span>",
+             "\t\t<span class="nt">&lt;title&gt;</span>Hello World<span class="nt">&lt;/title&gt;</span>",
+             "\t\t<span class="nt">&lt;meta</span> <span class="na">http-equiv=</span><span class="s">\"content-type\"</span> <span class="na">content=</span><span class="s">\"text/html;</span> <span class="na">charset=</span><span class="s">utf-8\"</span><span class="nt">&gt;</span>",
+             "\t\t<span class="nt">&lt;link</span> <span class="na">rel=</span><span class="s">\"stylesheet\"</span> <span class="na">href=</span><span class="s">\"*.css\"</span><span class="nt">&gt;</span>",
+             "\t\t<span class="nt">&lt;script </span><span class="na">type=</span><span class="s">\"text/javascript\"</span> <span class="na">src=</span><span class="s">\"*.js\"</span><span class="nt">&gt;</span> <span class="nt">&lt;/script&gt;</span>",
+             "\t<span class="nt">&lt;/head&gt;</span>",
+             "\t<span class="nt">&lt;body&gt;</span>",
+             "\t\t<span class="c">&lt;!-- Code Here $1 --&gt;</span>",
+             "\t<span class="nt">&lt;/body&gt;</span>",
+             "<span class="nt">&lt;/html&gt;</span>"
+         ],
+         "description": "插入一段空白的html模版"
+     },
+     "Canvas": {
+         "prefix": "canvas",
+         "body": [
+             "<span class="nt">&lt;canvas</span> <span class="na">id=</span><span class="s">\"$1\"</span> <span class="na">width=</span><span class="s">\"300px\"</span> <span class="na">height=</span><span class="s">\"150px\"</span><span class="nt">&gt;&lt;/canvas&gt;</span>"
+         ],
+         "description": "插入一行canvas"
+     }
+ }
+</code></p>
+  </li>
+  <li>
+    <p>效果演示</p>
+  </li>
+</ol>
+
+<p><img src="01.gif" alt="演示图" /></p>
+
+</div>
+	</div>
+<footer class="footer">
+    <span>Copyright © 2016 皖ICP备16016174号</span>
+    <a href="/sitemap.xml">网站地图</a>
+    <span>Powered by</span>
+    <a href="https://github.com/TMaize/tmaize-blog">tmaize-blog</a>
+    <div class="up"></div>
+</footer>
+<script>
+    //mta.qq.com 访问统计
+    var _mtac = {};
+    (function() {
+        var mta = document.createElement("script");
+        mta.src = "http://pingjs.qq.com/h5/stats.js?v2.0.2";
+        mta.setAttribute("name", "MTAH5");
+        mta.setAttribute("sid", "500581966");
+        var s = document.getElementsByTagName("script")[0];
+        s.parentNode.insertBefore(mta, s);
+    })();
+    //360的自动推送
+    (function(){
+        var src = (document.location.protocol == "http:") ? "http://js.passport.qihucdn.com/11.0.1.js?0b7f3f19682121293c3e4b62c9740281":"https://jspassport.ssl.qhimg.com/11.0.1.js?0b7f3f19682121293c3e4b62c9740281";
+        document.write('<script src="' + src + '" id="sozz"><\/script>');
+    })();
+    //百度的自动推送
+    (function(){
+        var bp = document.createElement('script');
+        var curProtocol = window.location.protocol.split(':')[0];
+        if (curProtocol === 'https') {
+            bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';
+        }
+        else {
+            bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+        }
+        var s = document.getElementsByTagName("script")[0];
+        s.parentNode.insertBefore(bp, s);
+    })();
+</script>
+</body>
+</html>

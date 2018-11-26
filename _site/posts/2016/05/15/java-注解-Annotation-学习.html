@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+		<meta http-equiv="content-language" content="zh-CN" />
+		<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+		<meta name="keywords" content="TMaize,java"/>
+		<meta name="author" content="TMaize" />
+		<meta name="description" content="Java注解(Annotation)学习"/>
+		<link rel="icon" href="/static/img/favicon.ico" type="image/x-icon" />
+		<link rel="shortcut icon" href="/static/img/favicon.ico" type="image/x-icon"/>
+		<link rel="stylesheet" href="/static/css/blog.css">
+		<link rel="stylesheet" href="/static/css/blog-post.css">
+		<script>window.blog={contextPath:""}</script>
+		<script type="text/javascript" src="/static/js/blog.js"></script>
+		<title>Java注解(Annotation)学习-TMaize Blog</title>
+	</head>
+<body>
+<header class="header select-none">
+    <a class="logo" title="TMaize Blog" href="/">
+        <img src="/static/img/logo.jpg">
+    </a>
+    <a class="title" href="/">TMaize Blog</a>
+    <nav class="menu">
+        <a href="/">Blog</a>
+        <a href="/pages/categories.html">Categories</a>
+        <a href="/pages/search.html">Search</a>
+        <a href="/pages/links.html">Links</a>
+        <a href="/pages/chat.html">Chat</a>
+        <a href="/pages/about.html">About</a>
+    </nav>
+    <span class="icon"></span>
+</header>
+	<div class="main animation-fadeUp post">
+		
+		<h1 class="title">Java注解(Annotation)学习</h1>
+		
+		<div class="content"><h2 id="section">概念</h2>
+
+<p>注解（Annotation），也叫元数据。一种代码级别的说明。它是JDK1.5及以后版本引入的一个特性，与类、接口、枚举是在同一个层次。它可以声明在包、类、字段、方法、局部变量、方法参数等的前面，用来对这些元素进行说明，注释。</p>
+
+<h2 id="section-1">注解的分类</h2>
+
+<ol>
+  <li>
+    <p>源码注解</p>
+
+    <p>注解只在源码中存在，编译成.class文件就不存在了。</p>
+  </li>
+  <li>
+    <p>编译时注解：</p>
+
+    <p>注解在源码和.class文件中都存在。（例如：JDK的三个注解）</p>
+  </li>
+  <li>
+    <p>运行时注解</p>
+
+    <p>在运行阶段还起作用，甚至会影响运行逻辑的注解</p>
+  </li>
+</ol>
+
+<h3 id="jdk">JDK自带注解</h3>
+
+<p><code class="highlighter-rouge">java
+@Override //表示当前方法覆盖了父类的方法
+@Deprecation //表示方法已经过时,方法上有横线，使用时会有警告。
+@SuppviseWarnings //表示关闭一些警告信息(通知java编译器忽略特定的编译警告)
+</code></p>
+
+<h2 id="section-2">自定义注解</h2>
+
+<p>为了开发方便或者开发框架有时候需要自定义注解</p>
+
+<h3 id="section-3">语法</h3>
+
+<ol>
+  <li>使用@interface关键字定义注解，注意关键字的位置</li>
+  <li>成员以无参数无异常的方式声明，注意区别一般类成员变量的声明</li>
+  <li>可以使用default为成员指定一个默认值，如上所示</li>
+  <li>成员类型是受限的，合法的类型包括原始类型以及String、Class、Annotation、Enumeration （JAVA的基本数据类型有8种：byte(字节)、short(短整型)、int(整数型)、long(长整型)、float(单精度浮点数类型)、double(双精度浮点数类型)、char(字符类型)、boolean(布尔类型）</li>
+  <li>注解类可以没有成员，没有成员的注解称为标识注解，例如JDK注解中的@Override、@Deprecation</li>
+  <li>如果注解只有一个成员，并且把成员取名为value()，则在使用时可以忽略成员名和赋值号“=” ,例如JDK注解的@SuppviseWarnings ；如果成员名不为value，则使用时需指明成员名和赋值号”=”</li>
+</ol>
+
+<p>```java
+public @interface Annotation_1 {<br />
+    //仅仅用作标识<br />
+}</p>
+
+<p>public @interface Annotation_2 {<br />
+    String value() default “null”;
+    //使用时@Annotation_2(“haha”)
+}</p>
+
+<p>public @interface Annotation_3 {<br />
+    String name();
+    int age();
+    //使用时@Annotation_3(name=”haha”,age=18)
+}
+```</p>
+
+<h3 id="section-4">元注解</h3>
+
+<p>何为元注解？就是注解的注解，就是给你自己定义的注解添加注解，你自己定义了一个注解，但你想要你的注解有什么样的功能，此时就需要用元注解对你的注解进行说明了。元注解有4个.</p>
+
+<ul>
+  <li>
+    <p>@Target</p>
+
+    <p>即注解的作用域，用于说明注解的使用范围（即注解可以用在什么地方，比如类的注解，方法注解，成员变量注解等等），取值：</p>
+
+    <p><code class="highlighter-rouge">
+ ElemenetType.CONSTRUCTOR----------------------------构造器声明 
+ ElemenetType.FIELD --------------------------------------域声明(包括 enum 实例)
+ ElemenetType.LOCAL_VARIABLE------------------------- 局部变量声明 
+ ElemenetType.METHOD ----------------------------------方法声明 
+ ElemenetType.PACKAGE --------------------------------- 包声明 
+ ElemenetType.PARAMETER ------------------------------参数声明 
+ ElemenetType.TYPE--------------------------------------- 类，接口(包括注解类型)或enum声明
+</code></p>
+  </li>
+  <li>
+    <p>@Retention</p>
+
+    <p>描述的注解在什么范围内有效，取值有：
+  <code class="highlighter-rouge">
+  RetentionPolicy.SOURCE--------------------------只在源码显示，编译时会丢失
+  RetentionPolicy.CLASS-----------------------------编译时会记录到class中，运行时忽略 
+  RetentionPolicy.RUNTIME------------------------- 运行时存在，可以通过反射读取
+ </code></p>
+  </li>
+  <li>
+    <p>@Inherited</p>
+
+    <p>是一个标记注解，没有成员，表示允许子类继承该注解，也就是说如果一个使用了@Inherited修饰的注解被用于一个class时，则这个注解将被该class的子类继承拥有。使用了@Inherited修饰的注解只能被子类所继承，并不可以从它所实现的接口继承。子类继承父类的注解时，并不能从它所重载的方法继承注解</p>
+  </li>
+  <li>
+    <p>@Documented</p>
+
+    <p>@Documented是一个标记注解，没有成员。用于描述其它类型的annotation应该被作为被标注的程序成员的公共API，因此可以被例如javadoc此类的工具文档化。</p>
+  </li>
+</ul>
+
+<h3 id="section-5">注解处理器</h3>
+
+<p>即通过反射获取类、函数或成员上的运行时注解信息，从而实现动态控制程序运行的逻辑</p>
+
+<ul>
+  <li>Test.java</li>
+</ul>
+
+<p><code class="highlighter-rouge">java
+@MyAnnotation(name="MyName")
+public class UseAnn {
+	@MyAnnotation(name="测试",age=21)
+	public void excute(){
+		System.out.println("excute()执行....");
+	}
+}
+</code></p>
+
+<p><code class="highlighter-rouge">java
+try {
+    Class&lt;?&gt; c = Class.forName("Test");
+    //类上面是否有注解
+    if(c.isAnnotationPresent(MyAnnotation.class)){
+        MyAnnotation myAnnotation = (MyAnnotation) c.getAnnotation(MyAnnotation.class);
+        System.out.println(myAnnotation.name()+" "+myAnnotation.age());
+    }else{
+        System.out.println("该类没有被注解...");
+    }
+    //方法上是否有注解
+    Method[] ms = c.getDeclaredMethods();
+    for(Method method:ms){
+        if (method.isAnnotationPresent(MyAnnotation.class)) {
+            MyAnnotation myAnnotation = method.getAnnotation(MyAnnotation.class);
+            System.out.println(myAnnotation.name()+" "+myAnnotation.age());
+            try {
+                try {
+                    method.invoke(c.newInstance(), null);
+                } catch (InstantiationException e) {
+                    e.printStackTrace();
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+    }
+} catch (ClassNotFoundException e) {
+    System.out.println("没有加载到类....");
+}
+</code></p>
+
+<h2 id="demo-sql">Demo 注解反射生成SQL语句</h2>
+
+<p>使用java注解来对用户表的每个字段或字段的组合条件进行动态生成SQL查询语句</p>
+
+<p>```java
+//Table.java
+@Target({ElementType.TYPE})<br />
+@Retention(RetentionPolicy.RUNTIME)<br />
+public @interface Table {
+    String value();<br />
+}</p>
+
+<p>//Column.java
+@Target(ElementType.FIELD)
+@Retention(RetentionPolicy.RUNTIME)</p>
+
+<p>public @interface Column {
+	String value();
+}</p>
+
+<p>//User.java
+@Table(“user”)<br />
+public class User {</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>@Column("id") 
+private int id;  
+
+@Column("user_name")  
+private String userName;  
+  
+public int getId() {  
+    return id;  
+}  
+public void setId(int id) {  
+    this.id = id;  
+}  
+public String getUserName() {  
+    return userName;  
+}  
+public void setUserName(String userName) {  
+    this.userName = userName;  
+}  }
+</code></pre>
+</div>
+
+<p>//ReturnQuery.java
+public static String query(Object object){
+	StringBuilder sqlStrBuilder = new StringBuilder();
+	Class clazz = object.getClass();
+	if (!clazz.isAnnotationPresent(Table.class)) {
+		return null;
+	}</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>Table t = (Table) clazz.getAnnotation(Table.class);
+String tableName = t.value();
+sqlStrBuilder.append("select * from ").append(tableName).append(" where 1=1");
+Field[] fields = clazz.getDeclaredFields();
+for (Field field : fields) {
+	if (field.isAnnotationPresent(Column.class)) {
+		Column column = field.getAnnotation(Column.class);
+		Object value = invokeGet(field.getName(), object);
+		sqlStrBuilder.append(" and "+column.value()+"=" +value );
+	}
+}
+return sqlStrBuilder.toString();
+</code></pre>
+</div>
+
+<p>}</p>
+
+<p>public static Object invokeGet(String fieldName,Object object) {
+	try {
+		PropertyDescriptor pd = new PropertyDescriptor(fieldName,object.getClass());
+		return pd.getReadMethod().invoke(object, null);
+	} catch (IntrospectionException | IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
+		return null;
+	}
+}</p>
+
+<p>//Test.java
+User u = new User();<br />
+u.setUserName(“haha”);
+u.setId(10);</p>
+
+<p>System.out.println(ReturnQuery.query(u));
+```</p>
+
+<p>为了减小篇幅Demo删掉了好多代码，跑起来会有点问题，但是用法体现出来就行了</p>
+</div>
+	</div>
+<footer class="footer">
+    <span>Copyright © 2016 皖ICP备16016174号</span>
+    <a href="/sitemap.xml">网站地图</a>
+    <span>Powered by</span>
+    <a href="https://github.com/TMaize/tmaize-blog">tmaize-blog</a>
+    <div class="up"></div>
+</footer>
+<script>
+    //mta.qq.com 访问统计
+    var _mtac = {};
+    (function() {
+        var mta = document.createElement("script");
+        mta.src = "http://pingjs.qq.com/h5/stats.js?v2.0.2";
+        mta.setAttribute("name", "MTAH5");
+        mta.setAttribute("sid", "500581966");
+        var s = document.getElementsByTagName("script")[0];
+        s.parentNode.insertBefore(mta, s);
+    })();
+    //360的自动推送
+    (function(){
+        var src = (document.location.protocol == "http:") ? "http://js.passport.qihucdn.com/11.0.1.js?0b7f3f19682121293c3e4b62c9740281":"https://jspassport.ssl.qhimg.com/11.0.1.js?0b7f3f19682121293c3e4b62c9740281";
+        document.write('<script src="' + src + '" id="sozz"><\/script>');
+    })();
+    //百度的自动推送
+    (function(){
+        var bp = document.createElement('script');
+        var curProtocol = window.location.protocol.split(':')[0];
+        if (curProtocol === 'https') {
+            bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';
+        }
+        else {
+            bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+        }
+        var s = document.getElementsByTagName("script")[0];
+        s.parentNode.insertBefore(bp, s);
+    })();
+</script>
+</body>
+</html>
