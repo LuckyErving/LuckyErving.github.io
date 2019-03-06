@@ -1,5 +1,5 @@
 ---
-title: 久违了
+title: It's been so long
 date: 2018-11-26 10:00
 categories: Thoughts
 tags: 反思 第一篇博文
