@@ -1,6 +1,6 @@
 ---
 title: 久违了
-date: 2018-11-26 10:31:30
+date: 2018-11-26 10:00
 categories: Thoughts
 tags: 反思 第一篇博文
 ---
